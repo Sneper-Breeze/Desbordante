@@ -4,6 +4,7 @@
 #include <set>
 #include <vector>
 
+#include "algorithms/nd/model/nd_path.h"
 #include "algorithms/nd/nd.h"
 #include "model/table/column.h"
 #include "model/table/vertical.h"
@@ -12,7 +13,7 @@ namespace model {
 
 class NDGraph {
 private:
-    std::vector<model::ND> full_arcs_;
+    std::set<model::ND> full_arcs_;
     std::set<Vertical> nodes_;
     std::set<Column> simple_nodes_;
     std::map<Vertical, std::vector<model::ND>> full_arcs_map_;
@@ -20,7 +21,7 @@ private:
 
 public:
     /// @brief Create an ND-graph from a set of NDs
-    NDGraph(std::vector<model::ND> const& delta) : full_arcs_(delta) {
+    NDGraph(std::set<model::ND> const& delta) : full_arcs_(delta) {
         // Fill nodes_ and full_arcs_map_:
         for (auto const& full_arc : full_arcs_) {
             auto const& lhs = full_arc.GetLhs();
@@ -71,11 +72,20 @@ public:
         return simple_nodes_;
     }
 
+    /// @brief All NDs that grow from the given node
     std::vector<model::ND> AllExtensions(Vertical const& node) const;
 
+    /// @brief All NDs that grow from the given node
     std::vector<model::ND> AllExtensions(Column const& node) const;
 
-    bool HasND(model::ND const& nd) const;
+    /// @brief All ND-paths obtained by extending G_pi with one full arc
+    std::vector<NDPath> AllExtensions(NDPath const& g_pi) const;
+
+    std::vector<NDPath> SmartExtensions(NDPath const& g_pi) const;
+
+    bool HasND(model::ND const& nd) const {
+        return full_arcs_.find(nd) != full_arcs_.end();
+    }
 };
 
 }  // namespace model

@@ -24,15 +24,31 @@ std::vector<model::ND> NDGraph::AllExtensions(Column const& node) const {
     return AllExtensions(vert_node);
 }
 
-bool NDGraph::HasND(model::ND const& nd) const {
-    auto const& lhs = nd.GetLhs();
-    auto const& rhs = nd.GetRhs();
-    for (auto const& candidate : full_arcs_) {
-        if (candidate.GetLhs() == lhs && candidate.GetRhs() == rhs) {
-            return true;
+std::vector<NDPath> NDGraph::AllExtensions(NDPath const& g_pi) const {
+    std::vector<NDPath> result;
+    for (auto const& nd : full_arcs_) {
+        if (!(g_pi.HasND(nd))) {
+            if (g_pi.CanAdd(nd)) {
+                result.push_back(g_pi.Extend(nd));
+            }
         }
     }
-    return false;
+    return result;
+}
+
+std::vector<NDPath> NDGraph::SmartExtensions(NDPath const& g_pi) const {
+    std::vector<NDPath> result;
+    auto last_added = g_pi.LastAdded();
+    for (auto const& nd : full_arcs_) {
+        if (!(g_pi.HasND(nd))) {
+            if (last_added == nullptr || nd < *last_added) {
+                if (g_pi.CanAdd(nd)) {
+                    result.push_back(g_pi.Extend(nd));
+                }
+            }
+        }
+    }
+    return result;
 }
 
 }  // namespace model

@@ -9,23 +9,12 @@
 
 namespace model {
 
-bool NDPath::HasND(model::ND const& nd) const {
-    auto const& lhs = nd.GetLhs();
-    auto const& rhs = nd.GetRhs();
-    for (auto const& candidate : full_arcs_) {
-        if (candidate.GetLhs() == lhs && candidate.GetRhs() == rhs) {
-            return true;
-        }
-    }
-    return false;
-}
-
 void NDPath::Add(model::ND const& nd) {
     if (HasND(nd)) {
         return;
     }
 
-    full_arcs_.push_back(nd);
+    full_arcs_.insert(nd);
 
     auto lhs = nd.GetLhs();
     auto rhs = nd.GetRhs();
@@ -52,6 +41,12 @@ void NDPath::Add(model::ND const& nd) {
             simple_nodes_.insert(*(attrs.GetColumns().front()));
         }
     }
+}
+
+NDPath NDPath::Extend(model::ND const& nd) const {
+    std::set<model::ND> new_delta{full_arcs_};
+    new_delta.insert(nd);
+    return NDPath(new_delta, start_);
 }
 
 model::WeightType NDPath::Weight() const {

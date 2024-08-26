@@ -50,6 +50,12 @@ public:
 
     bool operator==(ND const& other) const = default;
     bool operator!=(ND const& other) const = default;
+
+    bool operator>(ND const& other) const;
+
+    bool operator<(ND const& other) const {
+        return !(*this > other || *this == other);
+    }
 };
 
 }  // namespace model

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <memory>
 #include <set>
 #include <vector>
 
@@ -12,18 +13,20 @@ namespace model {
 
 class NDPath {
 private:
-    std::vector<model::ND> full_arcs_;
+    std::set<model::ND> full_arcs_;
     std::set<Vertical> nodes_;
     std::set<Column> simple_nodes_;
     std::map<Vertical, std::vector<model::ND>> full_arcs_map_;
     std::multimap<Vertical, Column> dotted_arcs_;
 
     Vertical start_;
+    std::shared_ptr<model::ND> last_added_;
 
 public:
     /// @brief Create an ND-path from a set of NDs and with given start node
-    NDPath(std::vector<model::ND> const& delta, Vertical const& start)
-        : full_arcs_(delta), start_(start) {
+    NDPath(std::set<model::ND> const& delta, Vertical const& start,
+           std::shared_ptr<model::ND> last_added = nullptr)
+        : full_arcs_(delta), start_(start), last_added_(std::move(last_added)) {
         nodes_.insert(start_);
 
         // Fill nodes_ and full_arcs_map_:
@@ -67,14 +70,22 @@ public:
         return simple_nodes_.find(col) != simple_nodes_.end();
     }
 
-    bool HasND(model::ND const& nd) const;
+    bool HasND(model::ND const& nd) const {
+        return full_arcs_.find(nd) != full_arcs_.end();
+    }
 
     void Add(model::ND const& nd);
+
+    NDPath Extend(model::ND const& nd) const;
 
     model::WeightType Weight() const;
 
     /// @brief Check if given ND can be added by rule 2 from ND-path definition
     bool CanAdd(model::ND const& nd) const;
+
+    std::shared_ptr<model::ND> LastAdded() const {
+        return last_added_;
+    }
 };
 
 }  // namespace model

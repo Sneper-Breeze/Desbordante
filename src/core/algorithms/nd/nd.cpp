@@ -31,4 +31,25 @@ ND::ToNameTuple() const {
     return std::make_tuple(GetLhsNames(), GetRhsNames(), GetWeight());
 }
 
+bool ND::operator>(ND const& other) const {
+    if (weight_ > other.weight_) {
+        return true;
+    }
+    if (weight_ < other.weight_) {
+        return false;
+    }
+
+    if (lhs_ > other.lhs_) {
+        return true;
+    }
+    if (lhs_ < other.lhs_) {
+        return false;
+    }
+
+    if (rhs_ > other.rhs_) {
+        return true;
+    }
+    return false;
+}
+
 }  // namespace model
