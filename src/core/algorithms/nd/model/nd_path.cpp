@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "algorithms/nd/nd.h"
+#include "algorithms/nd/util/is_subset.h"
 #include "model/table/column.h"
 #include "model/table/vertical.h"
 
@@ -35,6 +36,7 @@ void NDPath::Add(model::ND const& nd) {
         if (attrs.GetArity() > 1) {
             for (Column const* attr : attrs.GetColumns()) {
                 simple_nodes_.insert(*attr);
+                nodes_.insert(Vertical(*attr));
                 dotted_arcs_.emplace(attrs, *attr);
             }
         } else {
@@ -73,6 +75,21 @@ bool NDPath::CanAdd(model::ND const& nd) const {
             return true;
         }
     }
+    return false;
+}
+
+bool NDPath::IsDominatedBy(NDPath const& other) const {
+    using namespace algos::nd::util;
+    return IsSubsetOf(Attr(), other.Attr()) && other.Weight() <= Weight();
+}
+
+bool NDPath::IsDominated(NDPath const& best, std::vector<NDPath>& active_paths) const {
+    if (IsDominatedBy(best)) {
+        return true;
+    }
+
+    std::erase_if(active_paths,
+                  [this](NDPath const& g_gamma) { return g_gamma.IsDominatedBy(*this); });
     return false;
 }
 

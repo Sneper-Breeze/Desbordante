@@ -50,6 +50,7 @@ public:
             if (attrs.GetArity() > 1) {
                 for (Column const* attr : attrs.GetColumns()) {
                     simple_nodes_.insert(*attr);
+                    nodes_.insert(Vertical(*attr));
                     dotted_arcs_.emplace(attrs, *attr);
                 }
             } else {
@@ -86,6 +87,10 @@ public:
     std::shared_ptr<model::ND> LastAdded() const {
         return last_added_;
     }
+
+    bool IsDominatedBy(NDPath const& other) const;
+
+    bool IsDominated(NDPath const& best, std::vector<NDPath>& active_paths) const;
 };
 
 }  // namespace model

@@ -43,6 +43,7 @@ public:
             if (attrs.GetArity() > 1) {
                 for (Column const* attr : attrs.GetColumns()) {
                     simple_nodes_.insert(*attr);
+                    nodes_.insert(Vertical(*attr));
                     dotted_arcs_.emplace(attrs, *attr);
                 }
             } else {
