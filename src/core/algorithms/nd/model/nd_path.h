@@ -13,19 +13,19 @@ namespace model {
 
 class NDPath {
 private:
-    std::set<model::ND> full_arcs_;
+    std::set<ND> full_arcs_;
     std::set<Vertical> nodes_;
     std::set<Column> simple_nodes_;
-    std::map<Vertical, std::vector<model::ND>> full_arcs_map_;
+    std::map<Vertical, std::vector<ND>> full_arcs_map_;
     std::multimap<Vertical, Column> dotted_arcs_;
 
     Vertical start_;
-    std::shared_ptr<model::ND> last_added_;
+    std::shared_ptr<ND> last_added_;
 
 public:
     /// @brief Create an ND-path from a set of NDs and with given start node
-    NDPath(std::set<model::ND> const& delta, Vertical const& start,
-           std::shared_ptr<model::ND> last_added = nullptr)
+    NDPath(std::set<ND> const& delta, Vertical const& start,
+           std::shared_ptr<ND> last_added = nullptr)
         : full_arcs_(delta), start_(start), last_added_(std::move(last_added)) {
         nodes_.insert(start_);
 
@@ -38,7 +38,7 @@ public:
             nodes_.insert(rhs);
 
             if (full_arcs_map_.find(lhs) == full_arcs_map_.end()) {
-                std::vector<model::ND> vec{full_arc};
+                std::vector<ND> vec{full_arc};
                 full_arcs_map_.emplace(lhs, std::move(vec));
             } else {
                 full_arcs_map_[lhs].push_back(full_arc);
@@ -71,26 +71,37 @@ public:
         return simple_nodes_.find(col) != simple_nodes_.end();
     }
 
-    bool HasND(model::ND const& nd) const {
+    bool HasND(ND const& nd) const {
         return full_arcs_.find(nd) != full_arcs_.end();
     }
 
-    void Add(model::ND const& nd);
+    void Add(ND const& nd);
 
-    NDPath Extend(model::ND const& nd) const;
+    NDPath Extend(ND const& nd) const;
 
-    model::WeightType Weight() const;
+    WeightType Weight() const;
 
     /// @brief Check if given ND can be added by rule 2 from ND-path definition
-    bool CanAdd(model::ND const& nd) const;
+    bool CanAdd(ND const& nd) const;
 
-    std::shared_ptr<model::ND> LastAdded() const {
+    std::shared_ptr<ND> LastAdded() const {
         return last_added_;
     }
 
     bool IsDominatedBy(NDPath const& other) const;
 
     bool IsDominated(NDPath const& best, std::vector<NDPath>& active_paths) const;
+
+    bool IsEssential(ND const& nd) const;
+
+    /// @brief Checks if this ND-path is still an ND-path with the same start and Attr after ND
+    /// removal
+    bool CanSafelyRemove(ND const& nd) const;
+
+    /// @brief Checks if this ND-path is still an ND-path with the same start after ND removal
+    bool CanRemove(ND const& nd) const;
+
+    bool IsMinimal() const;
 };
 
 }  // namespace model
