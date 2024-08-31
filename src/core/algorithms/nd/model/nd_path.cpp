@@ -5,7 +5,7 @@
 
 #include "algorithms/nd/model/nd_graph.h"
 #include "algorithms/nd/nd.h"
-#include "algorithms/nd/util/is_subset.h"
+#include "algorithms/nd/util/set_operations.h"
 #include "model/table/column.h"
 #include "model/table/vertical.h"
 

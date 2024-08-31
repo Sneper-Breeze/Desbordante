@@ -1,8 +1,7 @@
-#include "algorithms/nd/util/is_subset.h"
+#include "algorithms/nd/util/set_operations.h"
 
 namespace algos::nd::util {
 
-/// @brief Checks if a is a subset of b
 template <Collection A, Set B>
 bool IsSubsetOf(A const& a, B const& b) {
     for (auto const& elem : a) {
@@ -13,7 +12,6 @@ bool IsSubsetOf(A const& a, B const& b) {
     return true;
 }
 
-/// @brief Checks if a is not a subset of b
 template <Collection A, Set B>
 bool IsNotSubsetOf(A const& a, B const& b) {
     for (auto const& elem : a) {
@@ -22,6 +20,17 @@ bool IsNotSubsetOf(A const& a, B const& b) {
         }
     }
     return false;
+}
+
+template <InsertableCollection A, Set B>
+A SetDifference(A const& a, B const& b) {
+    A result;
+    for (auto const& elem : a) {
+        if (b.find(elem) == b.end()) {
+            result.insert(elem);
+        }
+    }
+    return result;
 }
 
 }  // namespace algos::nd::util

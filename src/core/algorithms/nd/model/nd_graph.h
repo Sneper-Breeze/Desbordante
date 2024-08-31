@@ -17,6 +17,7 @@ private:
     std::set<Vertical> nodes_;
     std::set<Column> simple_nodes_;
     std::map<Vertical, std::vector<model::ND>> full_arcs_map_;
+    std::map<Vertical, std::vector<model::ND>> reverse_full_arcs_map_;
     std::multimap<Vertical, Column> dotted_arcs_;
 
 public:
@@ -30,11 +31,18 @@ public:
             nodes_.insert(lhs);
             nodes_.insert(rhs);
 
-            if (full_arcs_map_.find(lhs) == full_arcs_map_.end()) {
+            if (full_arcs_map_.contains(lhs)) {
                 std::vector<model::ND> vec{full_arc};
                 full_arcs_map_.emplace(lhs, std::move(vec));
             } else {
                 full_arcs_map_[lhs].push_back(full_arc);
+            }
+
+            if (reverse_full_arcs_map_.contains(rhs)) {
+                std::vector<model::ND> vec{full_arc};
+                reverse_full_arcs_map_.emplace(rhs, std::move(vec));
+            } else {
+                reverse_full_arcs_map_[rhs].push_back(full_arc);
             }
         }
 
@@ -87,6 +95,14 @@ public:
     bool HasND(model::ND const& nd) const {
         return full_arcs_.find(nd) != full_arcs_.end();
     }
+
+    std::set<ND> ReachableFrom(Vertical const& from) const;
+
+    std::set<ND> ReverseReachableFrom(Vertical const& from) const;
+
+    void Remove(ND const& nd);
+
+    void RemoveUselessNDs(Vertical const& from, Vertical const& to);
 };
 
 }  // namespace model
