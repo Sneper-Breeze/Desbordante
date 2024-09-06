@@ -22,14 +22,36 @@ concept InsertableCollection = requires(T& t, T::value_type const& elem) {
 
 /// @brief Checks if a is a subset of b
 template <Collection A, Set B>
-bool IsSubsetOf(A const& a, B const& b);
+bool IsSubsetOf(A const& a, B const& b) {
+    for (auto const& elem : a) {
+        if (b.find(elem) == b.end()) {
+            return false;
+        }
+    }
+    return true;
+}
 
 /// @brief Checks if a is not a subset of b
 template <Collection A, Set B>
-bool IsNotSubsetOf(A const& a, B const& b);
+bool IsNotSubsetOf(A const& a, B const& b) {
+    for (auto const& elem : a) {
+        if (b.find(elem) == b.end()) {
+            return true;
+        }
+    }
+    return false;
+}
 
 /// @brief Calculates a \ b
 template <InsertableCollection A, Set B>
-A SetDifference(A const& a, B const& b);
+A SetDifference(A const& a, B const& b) {
+    A result;
+    for (auto const& elem : a) {
+        if (b.find(elem) == b.end()) {
+            result.insert(elem);
+        }
+    }
+    return result;
+}
 
 }  // namespace algos::nd::util
