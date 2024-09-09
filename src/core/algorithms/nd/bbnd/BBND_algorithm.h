@@ -19,12 +19,11 @@ private:
     config::EqNullsType is_null_equal_null_;
     util::PrimitiveCollection<model::ND> nd_collection_;
     std::shared_ptr<ColumnLayoutRelationData> relation_;
-    std::vector<model::NDPath> queue;
+    std::vector<model::NDPath> queue_;
     std::shared_ptr<model::NDGraph> graph_ = nullptr;
     
     void RegisterOptions();
     void ResetState() override;
-    void RegisterND(model::ND nd_to_register);
     void MakeExecuteOptsAvailable() override;
     void LoadDataInternal() override;
     unsigned long long ExecuteInternal() override;

@@ -42,10 +42,10 @@ void Bbnd::LoadDataInternal(){
             ColumnLayoutRelationData::CreateFrom(*input_table_, is_null_equal_null_);
     input_table_->Reset();
     if (relation_->GetColumnData().empty()) {
-        throw std::runtime_error("Got an empty dataset: ND verifying is meaningless.");
+        throw std::runtime_error("Got an empty dataset: ND mining is meaningless.");
     }
 
-    graph_ = std::make_shared<model::NDGraph>(model::NDGraph(nd::util::BuildInitialGraph(*relation_)));
+    graph_ = std::make_shared<model::NDGraph>(nd::util::BuildInitialGraph(*relation_));
 }
 
 void Bbnd::MakeExecuteOptsAvailable(){
