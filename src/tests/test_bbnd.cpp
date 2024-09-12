@@ -2,6 +2,8 @@
 
 #include <gtest/gtest.h>
 
+#include "config/names.h"
+#include "algorithms/algo_factory.h"
 #include "algorithms/nd/nd.h"
 #include "algorithms/nd/util/build_initial_graph.h"
 #include "algorithms/nd/util/set_operations.h"
@@ -10,6 +12,8 @@
 #include "config/tabular_data/input_table_type.h"
 #include "model/table/column_index.h"
 #include "model/table/column_layout_relation_data.h"
+#include "algorithms/nd/bbnd/BBND_algorithm.h"
+#include "csv_config_util.h"
 
 namespace tests {
 
@@ -83,4 +87,36 @@ INSTANTIATE_TEST_SUITE_P(
         ));
 // clang-format on
 
+class TestBbndAlgorithm : public ::testing::Test{
+protected:
+    static std::unique_ptr<algos::Bbnd> CreateAndConfToLoad(CSVConfig const& csv_config) {
+        using namespace config::names;
+        using algos::ConfigureFromMap, algos::StdParamsMap;
+
+        std::unique_ptr<algos::Bbnd> algorithm = std::make_unique<algos::Bbnd>();
+        ConfigureFromMap(*algorithm, StdParamsMap{{kTable, MakeInputTable(csv_config)}});
+        return algorithm;
+    }
+
+    static algos::StdParamsMap GetParamMap(
+            CSVConfig const& csv_config,
+            unsigned int max_lhs_ = std::numeric_limits<unsigned int>::max()) {
+        using namespace config::names;
+        // add more Params when algorithm will have it
+        return {
+                {kCsvConfig, csv_config},
+                {kMaximumLhs, max_lhs_},
+        };
+    }
+public:
+    static std::unique_ptr<algos::Bbnd> CreateAlgorithmInstance(
+            CSVConfig const& config,
+            unsigned int max_lhs = std::numeric_limits<unsigned int>::max()) {
+        return algos::CreateAndLoadAlgorithm<algos::Bbnd>(GetParamMap(config, max_lhs));
+    }
+};
+
+TEST_F(TestBbndAlgorithm, InitTest) {
+    ASSERT_THROW(CreateAlgorithmInstance(kTestEmpty);, std::runtime_error);
+}
 }  // namespace tests

@@ -30,6 +30,8 @@ Bbnd::Bbnd() : Algorithm({}) {
     MakeOptionsAvailable({config::kTableOpt.GetName(), config::kEqualNullsOpt.GetName()});
 }
 
+Bbnd::Bbnd(std::vector<std::string_view> phase_names) : Bbnd() {}
+
 void Bbnd::RegisterOptions() {
     DESBORDANTE_OPTION_USING;
 
@@ -54,6 +56,9 @@ void Bbnd::MakeExecuteOptsAvailable(){
 
 unsigned long long Bbnd::ExecuteInternal() {
     // Alghorithm will be here
+    unsigned long long execution_time = 0;
+
+    return execution_time;
 }
 
 } // namespace algos

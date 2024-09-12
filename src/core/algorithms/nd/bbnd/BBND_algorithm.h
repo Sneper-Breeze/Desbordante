@@ -23,14 +23,14 @@ private:
     std::shared_ptr<model::NDGraph> graph_ = nullptr;
     
     void RegisterOptions();
-    void ResetState() override;
+    void ResetState() override {};
     void MakeExecuteOptsAvailable() override;
     void LoadDataInternal() override;
     unsigned long long ExecuteInternal() override;
 
 public:
     Bbnd();
-    
+    explicit Bbnd(std::vector<std::string_view> phase_names);
     /* Returns the list of discovered NDs */
     std::list<model::ND> const& NdList() const noexcept {
         return nd_collection_.AsList();
@@ -39,6 +39,8 @@ public:
     std::list<model::ND>& NdList() noexcept {
         return nd_collection_.AsList();
     }
+
+    //virtual ~Bbnd() = default;
 };
 
 } // namesapce algos
