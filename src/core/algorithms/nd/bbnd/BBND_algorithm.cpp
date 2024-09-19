@@ -30,8 +30,6 @@ Bbnd::Bbnd() : Algorithm({}) {
     MakeOptionsAvailable({config::kTableOpt.GetName(), config::kEqualNullsOpt.GetName()});
 }
 
-Bbnd::Bbnd(std::vector<std::string_view> phase_names) : Bbnd() {}
-
 void Bbnd::RegisterOptions() {
     DESBORDANTE_OPTION_USING;
 

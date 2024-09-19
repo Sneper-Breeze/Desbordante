@@ -78,6 +78,21 @@ TEST_P(TestBuildInitialGraph, DefaultTest) {
     }
 }
 
+struct ActiveNdPathsParams {
+    std::set<Column> end;
+
+    ActiveNdPathsParams(std::set<Column> end)
+        : end(std::move(end)) {}
+};
+
+class TestActiveNdPaths : public ::testing::TestWithParam<ActiveNdPathsParams> {};
+
+
+TEST_P(TestActiveNdPaths, DefualtTest){
+    
+}
+
+
 // clang-format off
 INSTANTIATE_TEST_SUITE_P(
     NDMiningTestsBuildInitialGraph, TestBuildInitialGraph,
