@@ -30,7 +30,7 @@ private:
 
 public:
     Bbnd();
-    explicit Bbnd(std::vector<std::string_view> phase_names);
+    
     /* Returns the list of discovered NDs */
     std::list<model::ND> const& NdList() const noexcept {
         return nd_collection_.AsList();

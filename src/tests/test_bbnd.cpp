@@ -1,4 +1,5 @@
 #include <set>
+#include <boost/dynamic_bitset.hpp>
 
 #include <gtest/gtest.h>
 
@@ -13,6 +14,8 @@
 #include "model/table/column_index.h"
 #include "model/table/column_layout_relation_data.h"
 #include "algorithms/nd/bbnd/BBND_algorithm.h"
+#include "algorithms/nd/util/active_nd_paths.h"
+#include "model/table/vertical.h"
 #include "csv_config_util.h"
 
 namespace tests {
@@ -35,6 +38,38 @@ std::set<NDTuple> NDsToTuples(std::set<model::ND> const& nds) {
     }
     return result;
 }
+
+
+std::vector<NDTuple> NDsToTuples(std::vector<model::ND> const& nds) {
+    std::vector<NDTuple> result;
+    for (model::ND const& nd : nds) {
+        result.push_back(NDToTuple(nd));
+    }
+    return result;
+}
+
+/* For future debaging
+void PrintNd(NDTuple const& nd) {
+    std::cout << "LHS:" << std::endl;
+    for(auto indice : std::get<0>(nd))
+        std::cout << indice << std::endl;
+    
+    std::cout << "RHS:" << std::endl;
+    for(auto indice : std::get<1>(nd))
+        std::cout << indice << std::endl;
+    
+    std::cout << "Weirgt:" << std::endl;
+    std::cout << std::get<2>(nd) << std::endl;;
+}
+
+void PrintNds(std::set<NDTuple> const& nds) {
+    for (auto const& nd : nds) {
+        std::cout << "ND:";
+        PrintNd(nd);
+    }
+    std::cout << "\n\n";
+}
+*/
 
 static auto const kTestNDInputTable = CreateInputTable(kTestND);
 
@@ -78,6 +113,96 @@ TEST_P(TestBuildInitialGraph, DefaultTest) {
     }
 }
 
+static std::vector<std::set<NDTuple>> kTestNd_Paths = {{{{0, 1}, {3}, 8}, {{1}, {4, 0}, 9}}, // inters: 2, w:72
+                                                       {{{1}, {5, 0}, 3}}, {{{0,1}, {5}, 5}}, // inters: 1 w: 3 5 
+                                                       {{{1, 6}, {5, 4}, 10}, {{5, 1}, {3, 2}, 10}}}; // inters 3 w: 100
+
+class ActiveNdPathsDataFrame {
+    private:
+    RelationalSchema const* relation;
+
+    public:
+    ActiveNdPathsDataFrame(RelationalSchema const* relation) 
+    : relation(relation){};
+
+    Vertical CreateVertical(std::vector<model::ColumnIndex>const& indices){
+        boost::dynamic_bitset<> ind_bitset(relation->GetNumColumns());
+        for(auto const& indice : indices)
+            ind_bitset.set(indice);
+
+        return relation->GetVertical(ind_bitset);
+    }
+
+    model::ND CreateNd(NDTuple const& nd_to_create) {
+        boost::dynamic_bitset<> lhs_indices_(relation->GetNumColumns()), rhs_indices_(relation->GetNumColumns());
+        auto const& [lhs, rhs, weight] = nd_to_create;
+
+        return {ActiveNdPathsDataFrame::CreateVertical(lhs), 
+                ActiveNdPathsDataFrame::CreateVertical(rhs), weight};
+    }
+
+    model::NDPath CreateNdPath(std::set<NDTuple> const& nd_tuples, Vertical const& start) {
+        std::set<model::ND> nds;
+        for(auto const& nd : nd_tuples)
+            nds.emplace(ActiveNdPathsDataFrame::CreateNd(nd));
+
+        return {nds, start};
+    }    
+};
+
+struct ActiveNdPathsParams {
+    config::InputTable input_table;
+    std::vector<std::set<NDTuple>> nd_paths;
+    std::vector<model::ColumnIndex> start_indices;
+    std::vector<model::ColumnIndex> end_indices;
+    bool null_eq_null;
+
+    ActiveNdPathsParams(config::InputTable input_table, std::vector<std::set<NDTuple>> nd_paths,
+                        std::vector<model::ColumnIndex> start_indices,
+                        std::vector<model::ColumnIndex> end_indices,
+                        bool null_eq_null = true)
+        : input_table(std::move(input_table)),
+          nd_paths(nd_paths),
+          start_indices(start_indices),
+          end_indices(end_indices),
+          null_eq_null(null_eq_null) {}
+};
+
+class TestActiveNdPaths : public ::testing::TestWithParam<ActiveNdPathsParams> {};
+
+
+TEST_P(TestActiveNdPaths, DefualtTest){
+    auto const& p = GetParam();
+    auto end_indices = p.end_indices;
+    auto start_indices = p.start_indices;
+    auto input_table = p.input_table;
+    auto null_eq_null = p.null_eq_null;
+    auto nd_paths = p.nd_paths;
+    std::vector<std::set<NDTuple>> expected_order = {{{{1, 5}, {2, 3}, 10}, {{1, 6}, {4, 5}, 10}},
+                                                     {{{0, 1}, {3}, 8}, {{1}, {0, 4}, 9}},
+                                                     {{{1}, {0, 5}, 3}}, {{{0, 1}, {5}, 5}}};
+
+    auto relation = ColumnLayoutRelationData::CreateFrom(*input_table, null_eq_null);
+    input_table->Reset();
+    ActiveNdPathsDataFrame data_frame((*relation).GetSchema());
+
+    Vertical end=data_frame.CreateVertical(end_indices);
+    Vertical start=data_frame.CreateVertical(start_indices);
+
+    algos::nd::util::ActiveNdPaths<algos::nd::util::BeFComparator> nd_queue(end);
+
+    for(auto const& nd_path : nd_paths){
+        nd_queue.Push(data_frame.CreateNdPath(nd_path, start));
+    }
+    std::vector<std::set<NDTuple>> result;
+    while(nd_queue.IsEmpty() == false){
+        auto res = nd_queue.Pop();
+        result.push_back(NDsToTuples(res.NDs()));
+    }
+
+    EXPECT_EQ(result, expected_order);
+}
+
 // clang-format off
 INSTANTIATE_TEST_SUITE_P(
     NDMiningTestsBuildInitialGraph, TestBuildInitialGraph,
@@ -86,6 +211,16 @@ INSTANTIATE_TEST_SUITE_P(
         BuildInitialGraphParams(kTestNDInputTable, kTestNDNDs, true)
         ));
 // clang-format on
+
+// clang-format off
+INSTANTIATE_TEST_SUITE_P(
+    NDMiningTestsActiveNdPaths, TestActiveNdPaths,
+    ::testing::Values(
+        // Simple example from NDVerifier test suite:
+        ActiveNdPathsParams(kTestNDInputTable, kTestNd_Paths, {0}, {3, 4, 5})
+        ));
+// clang-format on
+
 
 class TestBbndAlgorithm : public ::testing::Test{
 protected:

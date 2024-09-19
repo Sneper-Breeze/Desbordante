@@ -32,23 +32,19 @@ ND::ToNameTuple() const {
 }
 
 bool ND::operator>(ND const& other) const {
-    if (weight_ > other.weight_) {
+    if (lhs_ > other.lhs_)
         return true;
-    }
-    if (weight_ < other.weight_) {
+    if (lhs_ < other.lhs_)
         return false;
-    }
 
-    if (lhs_ > other.lhs_) {
+    if (rhs_ > other.rhs_)
         return true;
-    }
-    if (lhs_ < other.lhs_) {
+    if (rhs_ < other.rhs_)
         return false;
-    }
 
-    if (rhs_ > other.rhs_) {
+    if (weight_ > other.weight_)
         return true;
-    }
+    
     return false;
 }
 

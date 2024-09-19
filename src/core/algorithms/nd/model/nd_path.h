@@ -59,12 +59,22 @@ public:
         }
     }
 
+    NDPath(NDPath const&) = default;
+    NDPath(NDPath&&) = default;
+    NDPath& operator=(NDPath const&) = default;
+    NDPath& operator=(NDPath&&) = default;
+    ~NDPath() = default;
+
     std::set<Vertical> const& Nodes() const {
         return nodes_;
     }
 
     std::set<Column> const& Attr() const {
         return simple_nodes_;
+    }
+
+    std::set<ND> const& NDs() const {
+        return full_arcs_;
     }
 
     bool IsReachable(Column const& col) const {
