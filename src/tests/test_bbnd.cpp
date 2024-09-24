@@ -1,4 +1,5 @@
 #include <set>
+#include <boost/dynamic_bitset.hpp>
 
 #include <gtest/gtest.h>
 
@@ -13,6 +14,8 @@
 #include "model/table/column_index.h"
 #include "model/table/column_layout_relation_data.h"
 #include "algorithms/nd/bbnd/BBND_algorithm.h"
+#include "algorithms/nd/util/active_nd_paths.h"
+#include "model/table/vertical.h"
 #include "csv_config_util.h"
 
 namespace tests {
@@ -79,16 +82,38 @@ TEST_P(TestBuildInitialGraph, DefaultTest) {
 }
 
 struct ActiveNdPathsParams {
-    std::set<Column> end;
+    boost::dynamic_bitset<> end_indices;
+    config::InputTable input_table;
+    bool null_eq_null;
 
-    ActiveNdPathsParams(std::set<Column> end)
-        : end(std::move(end)) {}
+    ActiveNdPathsParams(std::set<Column> end_indices, config::InputTable input_table, 
+                        bool null_eq_null = true)
+        : end_indices(end_indices)
+          input_table(std::move(input_table)),
+          null_eq_null(null_eq_null) {}
 };
+
+model::ND CreateNd(ColumnLayoutRelationData & relation, boost::dynamic_bitset<> lhs_ind,
+                   boost::dynamic_bitset<> rhs_ind, model::WeightType weight) {
+    Vertical lhs(relation, lhs_ind), rhs(relation, rhs_ind);
+    return model::ND(lhs, rhs, model::WeightType(weight));
+}
 
 class TestActiveNdPaths : public ::testing::TestWithParam<ActiveNdPathsParams> {};
 
-
 TEST_P(TestActiveNdPaths, DefualtTest){
+    auto const& p = GetParam();
+    auto end_indices = p.end_indices()
+    auto input_table = p.input_table();
+    auto null_eq_null = p.null_eq_null();
+
+    auto relation = ColumnLayoutRelationData::CreateFrom(*input_table, null_eq_null);
+    input_table->Reset();
+
+    Vertical end(relation, end_indices);
+
+    algos::nd::util::ActiveNdPaths<algos::nd::util::BeFCmpr> Nd_queue(end);
+    model::NDPath new_path(set<model::ND>({}));
     
 }
 

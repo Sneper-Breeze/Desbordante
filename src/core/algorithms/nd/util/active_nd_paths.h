@@ -12,16 +12,16 @@
 
 
 namespace algos::nd::util{
-int IntersectionWithEnd(model::NDPath nd_path, std::set<Column> end){
+int IntersectionWithEnd(model::NDPath nd_path, std::shared_ptr<std::set<Column>> end){
     auto attrs = nd_path.Attr();
 
     int ans = 0;
-    auto it_end = end.begin();
+    auto it_end = end->begin();
     for(auto it_attr = attrs.begin(); it_attr != attrs.end(); it_attr++){
-        while(it_end != end.end() && *it_end < *it_attr)
+        while(it_end != end->end() && *it_end < *it_attr)
             it_end++;
 
-        if(it_end != end.end() && *it_end == *it_attr)
+        if(it_end != end->end() && *it_end == *it_attr)
             ans++;
     }
 
@@ -29,10 +29,12 @@ int IntersectionWithEnd(model::NDPath nd_path, std::set<Column> end){
 }
 
 
-bool BeFCmpr(std::pair<model::NDPath, std::set<Column>> a, std::pair<model::NDPath, std::set<Column>> b){
-    int res = IntersectionWithEnd(a.first, a.second) - IntersectionWithEnd(b.first, b.second);
+bool BeFCmpr(std::pair<model::NDPath, std::shared_ptr<std::set<Column>>> a,
+             std::pair<model::NDPath, std::shared_ptr<std::set<Column>>> b){
+    int res = IntersectionWithEnd(a.first, a.second) 
+              - IntersectionWithEnd(b.first, b.second);
 
-    if(res < 0)
+    if(res > 0)
         return true;
     if(res == 0 && a.first.Weight() < b.first.Weight())
         return true;
@@ -47,12 +49,12 @@ class ActiveNdPaths {
         // int IntersectionWithEnd(model::NDPath nd_path);
         // bool CustomCmpr(model::NDPath a, model::NDPath b);
         
-        std::set<std::pair<model::NDPath, std::set<Column>>, _Compare> queue_;
-        std::set<Column> end_;
+        std::set<std::pair<model::NDPath, std::shared_ptr<std::set<Column>>>, _Compare> queue_;
+        std::shared_ptr<std::set<Column>> end_;
 
     public:
         ActiveNdPaths(Vertical end);
-        ActiveNdPaths(std::set<Column> end);
+        ActiveNdPaths(std::set<Column> && end);
         
         // Changing methods
         model::NDPath Pop();

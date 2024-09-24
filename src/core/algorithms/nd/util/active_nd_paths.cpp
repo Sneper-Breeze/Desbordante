@@ -8,13 +8,13 @@ namespace algos::nd::util {
 template<typename _Compare>
 ActiveNdPaths<_Compare>::ActiveNdPaths(Vertical end) {
     std::vector<Column const*> end_columns = end.GetColumns();
-    end_ = std::set<Column> (end_columns.begin(), end_columns.end());
+    end_ = std::set<Column>(end_columns.begin(), end_columns.end());
     queue_ = {};
 }
 
 template<typename _Compare>
-ActiveNdPaths<_Compare>::ActiveNdPaths(std::set<Column> end) {
-    end_ = end;
+ActiveNdPaths<_Compare>::ActiveNdPaths(std::set<Column> && end) {
+    end_ = std::move(end);
     queue_ = {};
 }
 
