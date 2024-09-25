@@ -39,6 +39,14 @@ std::set<NDTuple> NDsToTuples(std::set<model::ND> const& nds) {
     return result;
 }
 
+std::vector<NDTuple> NDsToTuples(std::vector<model::ND> const& nds) {
+    std::vector<NDTuple> result;
+    for (model::ND const& nd : nds) {
+        result.push_back(NDToTuple(nd));
+    }
+    return result;
+}
+
 static auto const kTestNDInputTable = CreateInputTable(kTestND);
 
 static std::set<NDTuple> const kTestNDNDs{{{0}, {1}, 4}, {{0}, {2}, 6}, {{0}, {3}, 4},
@@ -81,6 +89,21 @@ TEST_P(TestBuildInitialGraph, DefaultTest) {
     }
 }
 
+static std::vector<NDTuple> NDstoTest = {{{0, 1}, {3}, 8}, {{1}, {3, 0}, 9},
+                                      {{4}, {5}, 3}, {{5}, {4}, 5}, 
+                                      {{3, 6}, {2, 4}, 1}, {{2, 5}, {1, 3}, 5}}
+
+model::ND CreateNd(Column lhs_ind, Column rhs_ind, model::WeightType weight){
+    return model::ND(lhs, rhs, weight);
+}
+
+model::ND CreateNds(ColumnLayoutRelationData const& relation, int lhs_ind,
+                   int rhs_ind, model::WeightType weight) {
+    auto const& columns = data.GetColumnData();
+    Vertical lhs(relation, lhs_ind), rhs(relation, rhs_ind);
+    return model::ND(lhs, rhs, model::WeightType(weight));
+}
+
 struct ActiveNdPathsParams {
     boost::dynamic_bitset<> end_indices;
     config::InputTable input_table;
@@ -92,12 +115,6 @@ struct ActiveNdPathsParams {
           input_table(std::move(input_table)),
           null_eq_null(null_eq_null) {}
 };
-
-model::ND CreateNd(ColumnLayoutRelationData & relation, boost::dynamic_bitset<> lhs_ind,
-                   boost::dynamic_bitset<> rhs_ind, model::WeightType weight) {
-    Vertical lhs(relation, lhs_ind), rhs(relation, rhs_ind);
-    return model::ND(lhs, rhs, model::WeightType(weight));
-}
 
 class TestActiveNdPaths : public ::testing::TestWithParam<ActiveNdPathsParams> {};
 
