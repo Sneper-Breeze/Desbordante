@@ -67,6 +67,10 @@ public:
         return simple_nodes_;
     }
 
+    std::set<ND> const& NDs() const {
+        return full_arcs_;
+    }
+
     bool IsReachable(Column const& col) const {
         return simple_nodes_.find(col) != simple_nodes_.end();
     }
