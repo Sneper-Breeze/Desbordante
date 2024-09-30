@@ -9,6 +9,7 @@
 #include "model/table/column_layout_relation_data.h"
 #include "model/table/vertical.h"
 #include "model/table/column.h"
+#include "algorithms/nd/util/active_nd_paths.h"
 
 
 namespace algos::nd::util{
@@ -53,7 +54,11 @@ class ActiveNdPaths {
         std::shared_ptr<std::set<Column>> end_;
 
     public:
-        ActiveNdPaths(Vertical end);
+        ActiveNdPaths(Vertical end) {
+            std::vector<Column const*> end_columns = end.GetColumns();
+            end_ = std::make_shared<std::set<Column>>(end_columns.begin(), end_columns.end());
+            queue_ = {};
+        };
         ActiveNdPaths(std::set<Column> && end);
         
         // Changing methods
