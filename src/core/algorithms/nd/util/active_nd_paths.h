@@ -55,16 +55,28 @@ class ActiveNdPaths {
 
     public:
         ActiveNdPaths(Vertical end) {
-            std::vector<Column const*> end_columns = end.GetColumns();
-            end_ = std::make_shared<std::set<Column>>(end_columns.begin(), end_columns.end());
+            std::vector<Column> end_columns = {};
+            for(Column const* column : end.GetColumns())
+                end_columns.push_back(*column);
+            end_ = std::make_shared<std::set<Column>>(std::set<Column>(end_columns.begin(), end_columns.end()));
             queue_ = {};
         };
-        ActiveNdPaths(std::set<Column> && end);
+        ActiveNdPaths(std::set<Column> && end) {
+            end_ = std::move(end);
+            queue_ = {};
+        };
         
         // Changing methods
-        model::NDPath Pop();
-        void Push(model::NDPath && new_path);
-        
+        model::NDPath Pop() {
+            auto res = *queue_.begin();
+            queue_.erase(queue_.begin());
+
+            return res.first;
+        };
+        void Push(model::NDPath && new_path){
+            queue_.emplace(new_path, end_);
+        };
+                
         // Checkout methods
         inline bool IsEmpty() {
             return queue_.empty();
