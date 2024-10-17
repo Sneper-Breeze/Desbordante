@@ -13,7 +13,7 @@
 
 
 namespace algos::nd::util{
-int IntersectionWithEnd(model::NDPath nd_path, std::shared_ptr<std::set<Column>> end){
+int IntersectionWithEnd(model::NDPath const& nd_path , std::shared_ptr<std::set<Column>> const& end){
     auto attrs = nd_path.Attr();
 
     int ans = 0;
@@ -30,8 +30,8 @@ int IntersectionWithEnd(model::NDPath nd_path, std::shared_ptr<std::set<Column>>
 }
 
 
-bool BeFCmpr(std::pair<model::NDPath, std::shared_ptr<std::set<Column>>> a,
-             std::pair<model::NDPath, std::shared_ptr<std::set<Column>>> b){
+bool BeFCmpr(std::pair<model::NDPath, std::shared_ptr<std::set<Column>>> const& a,
+             std::pair<model::NDPath, std::shared_ptr<std::set<Column>>> const& b){
     int res = IntersectionWithEnd(a.first, a.second) 
               - IntersectionWithEnd(b.first, b.second);
 
@@ -54,7 +54,7 @@ class ActiveNdPaths {
         std::shared_ptr<std::set<Column>> end_;
 
     public:
-        ActiveNdPaths(Vertical end) {
+        ActiveNdPaths(Vertical const& end) {
             std::vector<Column> end_columns = {};
             for(Column const* column : end.GetColumns())
                 end_columns.push_back(*column);
@@ -73,7 +73,7 @@ class ActiveNdPaths {
 
             return res.first;
         };
-        void Push(model::NDPath && new_path){
+        void Push(model::NDPath new_path){
             queue_.emplace(new_path, end_);
         };
                 

@@ -93,24 +93,24 @@ static std::vector<std::set<NDTuple>> NDstoTest = {{{{0, 1}, {3}, 8}, {{1}, {4, 
                                                       {{{1}, {5, 0}, 3}}, {{{0,1}, {5}, 5}}, // inters: 1 w: 3 5 
                                                       {{{1, 6}, {5, 4}, 10}, {{5, 1}, {3, 2}, 10}}}; // inters 3 w: 100
 
-Vertical CreateVertical(ColumnLayoutRelationData const& relation, std::vector<model::ColumnIndex>& indices) {
+Vertical CreateVertical(ColumnLayoutRelationData const& relation, std::vector<model::ColumnIndex>const& indices) {
     boost::dynamic_bitset<> ind_bitset(relation.GetNumColumns());
-    for(auto & indice : indices)
+    for(auto const& indice : indices)
         ind_bitset.set(indice);
 
-    return {relation.GetSchema(), ind_bitset};
+    return relation.GetSchema()->GetVertical(std::move(ind_bitset));
 }
 
 model::ND CreateNd(ColumnLayoutRelationData const& relation, NDTuple const& nd_to_create) {
     boost::dynamic_bitset<> lhs_indices_(relation.GetNumColumns()), rhs_indices_(relation.GetNumColumns());
-    auto [lhs, rhs, weight] = nd_to_create;
+    auto const& [lhs, rhs, weight] = nd_to_create;
 
     return {CreateVertical(relation, lhs), CreateVertical(relation, rhs), weight};
 }
 
 model::NDPath CreateNdPath(ColumnLayoutRelationData const& relation, std::set<NDTuple> const& nd_tuples, Vertical const& start) {
     std::set<model::ND> nds;
-    for(auto nd : nd_tuples){
+    for(auto const& nd : nd_tuples){
         nds.emplace(CreateNd(relation, nd));
     }
 
@@ -150,11 +150,11 @@ TEST_P(TestActiveNdPaths, DefualtTest){
     auto relation = ColumnLayoutRelationData::CreateFrom(*input_table, null_eq_null);
     input_table->Reset();
 
-    Vertical end=CreateVertical(*relation, end_indices);
-    Vertical start=CreateVertical(*relation, start_indices);
+    Vertical const& end=CreateVertical(*relation, end_indices);
+    Vertical const& start=CreateVertical(*relation, start_indices);
     algos::nd::util::ActiveNdPaths<decltype(algos::nd::util::BeFCmpr)*> nd_queue(end);
 
-    for(auto nd_path : nd_paths){
+    for(auto const& nd_path : nd_paths){
         nd_queue.Push(CreateNdPath(*relation, nd_path, start));
     }
     std::vector<std::set<NDTuple>> result;
