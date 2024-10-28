@@ -29,17 +29,27 @@ int IntersectionWithEnd(model::NDPath const& nd_path , std::shared_ptr<std::set<
     return ans;
 }
 
-
-bool BeFCmpr(std::pair<model::NDPath, std::shared_ptr<std::set<Column>>> const& a,
-             std::pair<model::NDPath, std::shared_ptr<std::set<Column>>> const& b){
-    /*int res = IntersectionWithEnd(a.first, a.second) 
+bool BeFCmpr(std::pair<model::NDPath, std::shared_ptr<std::set<Column>>> a,
+             std::pair<model::NDPath, std::shared_ptr<std::set<Column>>> b){
+    int res = IntersectionWithEnd(a.first, a.second)
               - IntersectionWithEnd(b.first, b.second);
-    */
-    if(a.first.Weight() < b.first.Weight())
+
+    if (res > 0) {
         return true;
+    }
+    if (res == 0 && a.first.Weight() < b.first.Weight()) {
+        return true;
+    }
 
     return false;
 }
+
+struct BeFComparator {
+    bool operator()(std::pair<model::NDPath, std::shared_ptr<std::set<Column>>> a,
+                    std::pair<model::NDPath, std::shared_ptr<std::set<Column>>> b) const {
+        return BeFCmpr(a, b);
+    }
+};
 
 
 template<typename _Compare = std::less<model::NDPath>>
@@ -47,7 +57,7 @@ class ActiveNdPaths {
     private:
         // int IntersectionWithEnd(model::NDPath nd_path);
         // bool CustomCmpr(model::NDPath a, model::NDPath b);
-        
+
         std::set<std::pair<model::NDPath, std::shared_ptr<std::set<Column>>>, _Compare> queue_;
         std::shared_ptr<std::set<Column>> end_;
 
@@ -60,10 +70,10 @@ class ActiveNdPaths {
             queue_ = {};
         };
         ActiveNdPaths(std::set<Column> && end) {
-            end_ = std::move(end);
+            end_ = std::make_shared<std::set<Column>>(std::move(end));
             queue_ = {};
         };
-        
+
         // Changing methods
         model::NDPath Pop() {
             auto res = *queue_.begin();
@@ -71,10 +81,10 @@ class ActiveNdPaths {
 
             return res.first;
         };
-        void Push(model::NDPath new_path){
+        void Push(model::NDPath&& new_path){
             queue_.emplace(new_path, end_);
         };
-                
+
         // Checkout methods
         inline bool IsEmpty() {
             return queue_.empty();

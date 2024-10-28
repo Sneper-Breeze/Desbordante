@@ -59,30 +59,11 @@ public:
         }
     }
 
-    /*
-    NDPath(NDPath&& other) {
-        full_arcs_ = std::move(other.full_arcs_);
-        nodes_ = std::move(other.nodes_);
-        simple_nodes_ = std::move(other.simple_nodes_);
-        full_arcs_map_ = std::move(other.full_arcs_map_);
-        dotted_arcs_ = std::move(other.dotted_arcs_);
-
-        start_ = other.start_;
-        last_added_ = other.last_added_;
-    }
-    NDPath& operator=(NDPath&& other) {
-        full_arcs_ = std::move(other.full_arcs_);
-        nodes_ = std::move(other.nodes_);
-        simple_nodes_ = std::move(other.simple_nodes_);
-        full_arcs_map_ = std::move(other.full_arcs_map_);
-        dotted_arcs_ = std::move(other.dotted_arcs_);
-
-        start_ = other.start_;
-        last_added_ = other.last_added_;
-
-        return *this;
-    }
-    */
+    NDPath(NDPath const&) = default;
+    NDPath(NDPath&&) = default;
+    NDPath& operator=(NDPath const&) = default;
+    NDPath& operator=(NDPath&&) = default;
+    ~NDPath() = default;
 
     std::set<Vertical> const& Nodes() const {
         return nodes_;

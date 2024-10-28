@@ -44,6 +44,8 @@ void NDPath::Add(ND const& nd) {
             simple_nodes_.insert(*(attrs.GetColumns().front()));
         }
     }
+
+    last_added_ = std::make_shared<ND>(nd);
 }
 
 NDPath NDPath::Extend(ND const& nd) const {

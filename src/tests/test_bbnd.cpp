@@ -126,7 +126,7 @@ class ActiveNdPathsDataFrame {
         return {nds, start};
     }    
 };
-/*
+
 Vertical CreateVertical(ColumnLayoutRelationData const& relation, std::vector<model::ColumnIndex>const& indices) {
     boost::dynamic_bitset<> ind_bitset(relation.GetNumColumns());
     for(auto const& indice : indices)
@@ -150,7 +150,6 @@ model::NDPath CreateNdPath(ColumnLayoutRelationData const& relation, std::set<ND
 
     return {nds, start};
 }
-*/
 
 struct ActiveNdPathsParams {
     config::InputTable input_table;
@@ -159,8 +158,9 @@ struct ActiveNdPathsParams {
     std::vector<model::ColumnIndex> end_indices;
     bool null_eq_null;
 
-    ActiveNdPathsParams(config::InputTable input_table,std::vector<std::set<NDTuple>> nd_paths, 
-                         std::vector<model::ColumnIndex> start_indices, std::vector<model::ColumnIndex> end_indices,
+    ActiveNdPathsParams(config::InputTable input_table, std::vector<std::set<NDTuple>> nd_paths,
+                        std::vector<model::ColumnIndex> start_indices,
+                        std::vector<model::ColumnIndex> end_indices,
                         bool null_eq_null = true)
         : input_table(std::move(input_table)),
           nd_paths(nd_paths),
@@ -180,15 +180,16 @@ TEST_P(TestActiveNdPaths, DefualtTest){
     auto nd_paths = p.nd_paths;
     std::vector<std::set<NDTuple>> expected_order = {{{{1, 6}, {5, 4}, 10}, {{5, 1}, {3, 2}, 10}},
                                                      {{{0, 1}, {3}, 8}, {{1}, {4, 0}, 9}},
-                                                     {{{1}, {5, 0}, 3}}, {{{0,1}, {5}, 5}}}; 
+                                                     {{{1}, {5, 0}, 3}}, {{{0,1}, {5}, 5}}};
 
     auto relation = ColumnLayoutRelationData::CreateFrom(*input_table, null_eq_null);
     input_table->Reset();
     ActiveNdPathsDataFrame data_frame((*relation).GetSchema());
 
-    Vertical const& end=data_frame.CreateVertical(end_indices);
-    Vertical const& start=data_frame.CreateVertical(start_indices);
-    algos::nd::util::ActiveNdPaths<decltype(algos::nd::util::BeFCmpr)*> nd_queue(end);
+    Vertical end=CreateVertical(*relation, end_indices);
+    Vertical start=CreateVertical(*relation, start_indices);
+
+    algos::nd::util::ActiveNdPaths<algos::nd::util::BeFComparator> nd_queue(end);
 
     for(auto const& nd_path : nd_paths){
         nd_queue.Push(data_frame.CreateNdPath(nd_path, start));
