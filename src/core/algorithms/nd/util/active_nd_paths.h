@@ -32,12 +32,10 @@ int IntersectionWithEnd(model::NDPath const& nd_path , std::shared_ptr<std::set<
 
 bool BeFCmpr(std::pair<model::NDPath, std::shared_ptr<std::set<Column>>> const& a,
              std::pair<model::NDPath, std::shared_ptr<std::set<Column>>> const& b){
-    int res = IntersectionWithEnd(a.first, a.second) 
+    /*int res = IntersectionWithEnd(a.first, a.second) 
               - IntersectionWithEnd(b.first, b.second);
-
-    if(res > 0)
-        return true;
-    if(res == 0 && a.first.Weight() < b.first.Weight())
+    */
+    if(a.first.Weight() < b.first.Weight())
         return true;
 
     return false;

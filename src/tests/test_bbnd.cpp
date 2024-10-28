@@ -93,6 +93,40 @@ static std::vector<std::set<NDTuple>> NDstoTest = {{{{0, 1}, {3}, 8}, {{1}, {4, 
                                                       {{{1}, {5, 0}, 3}}, {{{0,1}, {5}, 5}}, // inters: 1 w: 3 5 
                                                       {{{1, 6}, {5, 4}, 10}, {{5, 1}, {3, 2}, 10}}}; // inters 3 w: 100
 
+class ActiveNdPathsDataFrame {
+    private:
+    RelationalSchema const* relation;
+
+    public:
+    ActiveNdPathsDataFrame(RelationalSchema const* relation) 
+    : relation(relation){};
+
+    Vertical CreateVertical(std::vector<model::ColumnIndex>const& indices){
+        boost::dynamic_bitset<> ind_bitset(relation->GetNumColumns());
+        for(auto const& indice : indices)
+            ind_bitset.set(indice);
+
+        return relation->GetVertical(ind_bitset);
+    }
+
+    model::ND CreateNd(NDTuple const& nd_to_create) {
+        boost::dynamic_bitset<> lhs_indices_(relation->GetNumColumns()), rhs_indices_(relation->GetNumColumns());
+        auto const& [lhs, rhs, weight] = nd_to_create;
+
+        return {ActiveNdPathsDataFrame::CreateVertical(lhs), 
+                ActiveNdPathsDataFrame::CreateVertical(rhs), weight};
+    }
+
+    model::NDPath CreateNdPath(std::set<NDTuple> const& nd_tuples, Vertical const& start) {
+        std::set<model::ND> nds;
+        for(auto const& nd : nd_tuples){
+            nds.emplace(ActiveNdPathsDataFrame::CreateNd(nd));
+        }
+
+        return {nds, start};
+    }    
+};
+/*
 Vertical CreateVertical(ColumnLayoutRelationData const& relation, std::vector<model::ColumnIndex>const& indices) {
     boost::dynamic_bitset<> ind_bitset(relation.GetNumColumns());
     for(auto const& indice : indices)
@@ -116,6 +150,7 @@ model::NDPath CreateNdPath(ColumnLayoutRelationData const& relation, std::set<ND
 
     return {nds, start};
 }
+*/
 
 struct ActiveNdPathsParams {
     config::InputTable input_table;
@@ -149,13 +184,14 @@ TEST_P(TestActiveNdPaths, DefualtTest){
 
     auto relation = ColumnLayoutRelationData::CreateFrom(*input_table, null_eq_null);
     input_table->Reset();
+    ActiveNdPathsDataFrame data_frame((*relation).GetSchema());
 
-    Vertical const& end=CreateVertical(*relation, end_indices);
-    Vertical const& start=CreateVertical(*relation, start_indices);
+    Vertical const& end=data_frame.CreateVertical(end_indices);
+    Vertical const& start=data_frame.CreateVertical(start_indices);
     algos::nd::util::ActiveNdPaths<decltype(algos::nd::util::BeFCmpr)*> nd_queue(end);
 
     for(auto const& nd_path : nd_paths){
-        nd_queue.Push(CreateNdPath(*relation, nd_path, start));
+        nd_queue.Push(data_frame.CreateNdPath(nd_path, start));
     }
     std::vector<std::set<NDTuple>> result;
     while(nd_queue.IsEmpty() == false){
