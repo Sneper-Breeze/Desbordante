@@ -1,5 +1,4 @@
 #include "algorithms/nd/bbnd/BBND_algorithm.h"
-#include <boost/unordered_map.hpp>
 
 #include <chrono>
 #include <cstddef>
@@ -8,8 +7,10 @@
 #include <string>
 #include <vector>
 
+#include <boost/unordered_map.hpp>
 #include <easylogging++.h>
 
+#include "algorithms/nd/util/build_initial_graph.h"
 #include "config/descriptions.h"
 #include "config/equal_nulls/option.h"
 #include "config/indices/option.h"
@@ -21,8 +22,6 @@
 #include "model/table/typed_column_data.h"
 #include "model/types/builtin.h"
 #include "model/types/type.h"
-#include "algorithms/nd/util/build_initial_graph.h"
-
 
 namespace algos {
 Bbnd::Bbnd() : Algorithm({}) {
@@ -37,9 +36,8 @@ void Bbnd::RegisterOptions() {
     RegisterOption(config::kEqualNullsOpt(&is_null_equal_null_));
 }
 
-void Bbnd::LoadDataInternal(){
-    relation_ =
-            ColumnLayoutRelationData::CreateFrom(*input_table_, is_null_equal_null_);
+void Bbnd::LoadDataInternal() {
+    relation_ = ColumnLayoutRelationData::CreateFrom(*input_table_, is_null_equal_null_);
     input_table_->Reset();
     if (relation_->GetColumnData().empty()) {
         throw std::runtime_error("Got an empty dataset: ND mining is meaningless.");
@@ -48,7 +46,7 @@ void Bbnd::LoadDataInternal(){
     graph_ = std::make_shared<model::NDGraph>(nd::util::BuildInitialGraph(*relation_));
 }
 
-void Bbnd::MakeExecuteOptsAvailable(){
+void Bbnd::MakeExecuteOptsAvailable() {
     // Add here any specific execution opts to be available in future
 }
 
@@ -59,4 +57,4 @@ unsigned long long Bbnd::ExecuteInternal() {
     return execution_time;
 }
 
-} // namespace algos
+}  // namespace algos

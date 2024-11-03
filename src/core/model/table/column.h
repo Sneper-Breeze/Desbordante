@@ -23,8 +23,6 @@ public:
     Column(RelationalSchema const* schema, std::string name, IndexType index)
         : name_(std::move(name)), index_(index), schema_(schema) {}
 
-    Column(Column const * c) : Column(*c) {}
-
     IndexType GetIndex() const {
         return index_;
     }
