@@ -9,7 +9,6 @@
 #include "algorithms/nd/nd.h"
 #include "algorithms/nd/util/active_nd_paths.h"
 #include "algorithms/nd/util/build_initial_graph.h"
-#include "algorithms/nd/util/set_operations.h"
 #include "all_csv_configs.h"
 #include "config/indices/type.h"
 #include "config/names.h"
@@ -248,4 +247,93 @@ public:
 TEST_F(TestBbndAlgorithm, InitTest) {
     ASSERT_THROW(CreateAlgorithmInstance(kTestEmpty);, std::runtime_error);
 }
+
+TEST_F(TestBbndAlgorithm, DeriveNDTest) {
+    auto input_table = MakeInputTable(kTestND);
+
+    auto relation = ColumnLayoutRelationData::CreateFrom(*input_table, true);
+    input_table->Reset();
+    ActiveNdPathsDataFrame data_frame(relation->GetSchema());
+
+    Vertical start = data_frame.CreateVertical({1, 2});
+    Vertical end = data_frame.CreateVertical({4, 6});
+    // Actual weight is 2 (i. e. NDVerifier(lhs=start, rhs=end).GetRealWeight() will return 2)
+    // But minimal weight that can be derived is 4
+    model::ND expected{start, end, 4};
+
+    auto algo = CreateAlgorithmInstance(kTestND);
+    auto result = algo->DeriveND(start, end);
+    EXPECT_EQ(result, expected);
+}
+
+TEST_F(TestBbndAlgorithm, DeriveNDTest2) {
+    auto input_table = MakeInputTable(kTestND);
+
+    auto relation = ColumnLayoutRelationData::CreateFrom(*input_table, true);
+    input_table->Reset();
+    ActiveNdPathsDataFrame data_frame(relation->GetSchema());
+
+    Vertical start = data_frame.CreateVertical({0, 1, 2});
+    Vertical end = data_frame.CreateVertical({3, 4, 6});
+    // Actual weight is 2 (i. e. NDVerifier(lhs=start, rhs=end).GetRealWeight() will return 2)
+    // But minimal weight that can be derived is 8
+    model::ND expected{start, end, 8};
+
+    auto algo = CreateAlgorithmInstance(kTestND);
+    auto result = algo->DeriveND(start, end);
+    EXPECT_EQ(result, expected);
+}
+
+namespace onam = config::names;
+
+struct BBNDParams {
+    algos::StdParamsMap params;
+    std::set<NDTuple> expected;
+
+    BBNDParams(CSVConfig const& input_table, std::set<NDTuple> const& expected, size_t max_lhs = 2,
+               size_t max_rhs = 2, bool null_eq_null = true)
+        : params{{onam::kCsvConfig, input_table},
+                 {onam::kMaximumLhs, max_lhs},
+                 {onam::kMaximumRhs, max_rhs},
+                 {onam::kEqualNulls, null_eq_null}},
+          expected(expected) {}
+
+    BBNDParams(CSVConfig const& input_table, std::set<NDTuple>&& expected, size_t max_lhs = 2,
+               size_t max_rhs = 2, bool null_eq_null = true)
+        : params{{onam::kCsvConfig, input_table},
+                 {onam::kMaximumLhs, max_lhs},
+                 {onam::kMaximumRhs, max_rhs},
+                 {onam::kEqualNulls, null_eq_null}},
+          expected(expected) {}
+};
+
+class TestBBND : public ::testing::TestWithParam<BBNDParams> {};
+
+TEST_P(TestBBND, DefaultTest) {
+    auto const& p = GetParam();
+    auto expected = p.expected;
+    auto mp = algos::StdParamsMap(p.params);
+
+    auto algo = algos::CreateAndLoadAlgorithm<algos::Bbnd>(mp);
+    algo->Execute();
+
+    auto actual = algo->NdList();
+    std::set<model::ND> actual_set{actual.begin(), actual.end()};
+    auto actual_tuples = NDsToTuples(actual_set);
+    EXPECT_THAT(actual_tuples, ::testing::IsSupersetOf(expected));
+}
+
+// clang-format off
+INSTANTIATE_TEST_SUITE_P(
+    BBNDTests, TestBBND,
+    ::testing::Values(
+        // Test that 1-ary NDs aren't lost:
+        BBNDParams(kTestND, std::set<NDTuple>{{{1}, {5}, 3}}, 1, 1),
+        // 2-ary ND that we've derived:
+        BBNDParams(kTestND, std::set<NDTuple>{{{1, 2}, {4, 6}, 4}}, 2, 2),
+        // 3-ary ND that we've derived:
+        BBNDParams(kTestND, std::set<NDTuple>{{{0, 1, 2}, {3, 4, 6}, 8}}, 3, 3)
+        ));
+// cland-format on
+
 }  // namespace tests

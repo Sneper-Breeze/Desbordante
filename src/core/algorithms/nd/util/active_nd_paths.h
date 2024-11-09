@@ -3,6 +3,7 @@
 #include <iostream>
 #include <set>
 #include <unordered_map>
+#include <utility>
 
 #include "algorithms/nd/model/nd_path.h"
 #include "algorithms/nd/nd.h"
@@ -12,8 +13,8 @@
 #include "model/table/vertical.h"
 
 namespace algos::nd::util {
-int IntersectionWithEnd(model::NDPath const& nd_path,
-                        std::shared_ptr<std::set<Column>> const& end) {
+inline int IntersectionWithEnd(model::NDPath const& nd_path,
+                               std::shared_ptr<std::set<Column>> const& end) {
     auto attrs = nd_path.Attr();
 
     int ans = 0;
@@ -27,8 +28,8 @@ int IntersectionWithEnd(model::NDPath const& nd_path,
     return ans;
 }
 
-bool BeFCmpr(std::pair<model::NDPath, std::shared_ptr<std::set<Column>>> a,
-             std::pair<model::NDPath, std::shared_ptr<std::set<Column>>> b) {
+inline bool BeFCmpr(std::pair<model::NDPath, std::shared_ptr<std::set<Column>>> a,
+                    std::pair<model::NDPath, std::shared_ptr<std::set<Column>>> b) {
     int res = IntersectionWithEnd(a.first, a.second) - IntersectionWithEnd(b.first, b.second);
 
     if (res > 0) {
@@ -58,6 +59,10 @@ private:
     std::shared_ptr<std::set<Column>> end_;
 
 public:
+    using It = std::set<std::pair<model::NDPath, std::shared_ptr<std::set<Column>>>,
+                        _Compare>::iterator;
+    using ElemT = std::pair<model::NDPath, std::shared_ptr<std::set<Column>>>;
+
     ActiveNdPaths(Vertical const& end) {
         end_ = std::make_shared<std::set<Column>>();
         for (Column const* col : end.GetColumns()) end_->insert(*col);
@@ -78,12 +83,17 @@ public:
         return res.first;
     };
 
+    size_t EraseIf(std::function<bool(model::NDPath const&)> const& pred) {
+        auto new_pred = [&pred](ElemT const& elem) -> bool { return pred(elem.first); };
+        return std::erase_if(queue_, new_pred);
+    }
+
     void Push(model::NDPath&& new_path) {
         queue_.emplace(new_path, end_);
     };
 
     // Checkout methods
-    inline bool IsEmpty() {
+    bool IsEmpty() const noexcept {
         return queue_.empty();
     };
 };

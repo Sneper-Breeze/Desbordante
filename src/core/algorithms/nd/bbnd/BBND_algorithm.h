@@ -18,6 +18,8 @@ class Bbnd : public Algorithm {
 private:
     config::InputTable input_table_;
     config::EqNullsType is_null_equal_null_;
+    size_t max_lhs_arity_;
+    size_t max_rhs_arity_;
     util::PrimitiveCollection<model::ND> nd_collection_;
     std::shared_ptr<ColumnLayoutRelationData> relation_;
     std::vector<model::NDPath> queue_;
@@ -28,6 +30,7 @@ private:
     void MakeExecuteOptsAvailable() override;
     void LoadDataInternal() override;
     unsigned long long ExecuteInternal() override;
+    std::vector<std::vector<bool>> SubsetsOfSize(size_t superset_size, size_t subset_size) const;
 
 public:
     Bbnd();
@@ -40,6 +43,9 @@ public:
     std::list<model::ND>& NdList() noexcept {
         return nd_collection_.AsList();
     }
+
+    // For tests
+    model::ND DeriveND(Vertical const& lhs, Vertical const& rhs);
 
     // virtual ~Bbnd() = default;
 };

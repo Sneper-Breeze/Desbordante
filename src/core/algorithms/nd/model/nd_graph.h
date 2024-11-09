@@ -2,6 +2,8 @@
 
 #include <map>
 #include <set>
+#include <sstream>
+#include <string>
 #include <vector>
 
 #include "algorithms/nd/model/nd_path.h"
@@ -19,59 +21,27 @@ private:
     std::map<Vertical, std::vector<model::ND>> full_arcs_map_;
     std::map<Vertical, std::vector<model::ND>> reverse_full_arcs_map_;
     std::multimap<Vertical, Column> dotted_arcs_;
+    // It's sometimes convenient to count dotted arcs as FDs
+    std::map<Vertical, std::vector<model::ND>> all_arcs_map_;
+    std::map<Vertical, std::vector<model::ND>> reverse_all_arcs_map_;
+
+    unsigned arity_{0};
+
+    std::set<model::ND> AllExtensionsByTransitivity(unsigned max_arity) const;
+    std::set<model::ND> AllExtensionsByUnion(unsigned max_arity) const;
 
 public:
     /// @brief Create an ND-graph from a set of NDs
-    NDGraph(std::set<model::ND> const& delta) : full_arcs_(delta) {
-        // Fill nodes_ and full_arcs_map_:
-        for (auto const& full_arc : full_arcs_) {
-            auto const& lhs = full_arc.GetLhs();
-            auto const& rhs = full_arc.GetRhs();
-
-            nodes_.insert(lhs);
-            nodes_.insert(rhs);
-
-            if (full_arcs_map_.contains(lhs)) {
-                std::vector<model::ND> vec{full_arc};
-                full_arcs_map_.emplace(lhs, std::move(vec));
-            } else {
-                full_arcs_map_[lhs].push_back(full_arc);
-            }
-
-            if (reverse_full_arcs_map_.contains(rhs)) {
-                std::vector<model::ND> vec{full_arc};
-                reverse_full_arcs_map_.emplace(rhs, std::move(vec));
-            } else {
-                reverse_full_arcs_map_[rhs].push_back(full_arc);
-            }
-        }
-
-        // Fill simple_nodes_:
-        for (auto const& attrs : nodes_) {
-            if (attrs.GetArity() > 1) {
-                for (Column const* attr : attrs.GetColumns()) {
-                    simple_nodes_.insert(*attr);
-                    nodes_.insert(Vertical(*attr));
-                    dotted_arcs_.emplace(attrs, *attr);
-                }
-            } else {
-                simple_nodes_.insert(*(attrs.GetColumns().front()));
-            }
-        }
-    }
+    NDGraph(std::set<model::ND> const& delta);
 
     /// @brief Create an ND-graph induced by a given node
-    NDGraph(Vertical const& node) {
-        nodes_.insert(node);
-        if (node.GetArity() > 1) {
-            for (Column const* attr : node.GetColumns()) {
-                simple_nodes_.insert(*attr);
-                dotted_arcs_.emplace(node, *attr);
-            }
-        } else {
-            simple_nodes_.insert(*(node.GetColumns().front()));
-        }
-    }
+    NDGraph(Vertical const& node);
+
+    NDGraph(NDGraph const&) = default;
+    NDGraph(NDGraph&&) = delete;
+    NDGraph& operator=(NDGraph const&) = default;
+    NDGraph& operator=(NDGraph&&) = delete;
+    ~NDGraph() = default;
 
     std::set<Vertical> const& Nodes() const {
         return nodes_;
@@ -81,16 +51,7 @@ public:
         return simple_nodes_;
     }
 
-    /// @brief All NDs that grow from the given node
-    std::vector<model::ND> AllExtensions(Vertical const& node) const;
-
-    /// @brief All NDs that grow from the given node
-    std::vector<model::ND> AllExtensions(Column const& node) const;
-
-    /// @brief All ND-paths obtained by extending G_pi with one full arc
-    std::vector<NDPath> AllExtensions(NDPath const& g_pi) const;
-
-    std::vector<NDPath> SmartExtensions(NDPath const& g_pi) const;
+    std::vector<NDPath> SmartExtensions(NDPath const& g_pi);
 
     bool HasND(model::ND const& nd) const {
         return full_arcs_.find(nd) != full_arcs_.end();
@@ -103,6 +64,60 @@ public:
     void Remove(ND const& nd);
 
     void RemoveUselessNDs(Vertical const& from, Vertical const& to);
+
+    /// @brief Extend graph with the set of NDs
+    /// @return @c true if any new ND was added
+    bool Extend(std::set<ND> const& nds);
+
+    /// @brief Extend graph with all NDs of arity <= max_arity
+    void Closure(unsigned max_arity);
+
+    // For debugging
+    std::string ToNodesString() const {
+        std::stringstream ss;
+        ss << '{';
+        for (auto pt{nodes_.begin()}; pt != nodes_.end(); ++pt) {
+            if (pt != nodes_.begin()) {
+                ss << ", ";
+            }
+            ss << pt->ToString();
+        }
+        ss << '}';
+        return ss.str();
+    }
+
+    // For debugging
+    std::string ToArcsWithPredicateString(std::function<bool(ND const&)> const& pred =
+                                                  [](__attribute_maybe_unused__ ND const&) {
+                                                      return true;
+                                                  }) const {
+        std::stringstream ss;
+        ss << '{';
+        for (auto const& arc : full_arcs_) {
+            if (pred(arc)) {
+                if (ss.peek() == '{') {
+                    ss << ", ";
+                }
+                ss << arc;
+            }
+        }
+        for (auto const& [start, end] : dotted_arcs_) {
+            ND arc{start, Vertical{end}, 1};
+            if (pred(arc)) {
+                if (ss.peek() == '{') {
+                    ss << ", ";
+                }
+                ss << "[dotted]" << arc;
+            }
+        }
+        ss << '}';
+        return ss.str();
+    }
+
+    // For debugging
+    size_t NumNDs() const {
+        return full_arcs_.size();
+    }
 };
 
 }  // namespace model

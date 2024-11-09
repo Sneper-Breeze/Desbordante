@@ -1,15 +1,33 @@
 #include "algorithms/nd/model/nd_path.h"
 
+#include <numeric>
 #include <set>
 #include <vector>
 
+#include <easylogging++.h>
+
 #include "algorithms/nd/model/nd_graph.h"
 #include "algorithms/nd/nd.h"
-#include "algorithms/nd/util/set_operations.h"
 #include "model/table/column.h"
 #include "model/table/vertical.h"
 
 namespace model {
+
+NDPath::NDPath(std::set<ND> const& delta, Vertical const& start, std::shared_ptr<ND> last_added)
+    : full_arcs_(delta), start_(start), last_added_(std::move(last_added)) {
+    auto decompose = [this](Vertical const& attrs) {
+        auto const& cols = attrs.GetColumns();
+        std::transform(cols.begin(), cols.end(), std::inserter(simple_nodes_, simple_nodes_.end()),
+                       [](Column const* col) { return *col; });
+    };
+
+    decompose(start);
+
+    for (auto const& full_arc : full_arcs_) {
+        decompose(full_arc.GetLhs());
+        decompose(full_arc.GetRhs());
+    }
+}
 
 void NDPath::Add(ND const& nd) {
     if (HasND(nd)) {
@@ -18,32 +36,14 @@ void NDPath::Add(ND const& nd) {
 
     full_arcs_.insert(nd);
 
-    auto lhs = nd.GetLhs();
-    auto rhs = nd.GetRhs();
-    std::set<Vertical> added_nodes;
+    auto decompose = [this](Vertical const& attrs) {
+        auto const& cols = attrs.GetColumns();
+        std::transform(cols.begin(), cols.end(), std::inserter(simple_nodes_, simple_nodes_.end()),
+                       [](Column const* col) { return *col; });
+    };
 
-    nodes_.insert(lhs);
-    added_nodes.insert(lhs);
-    nodes_.insert(rhs);
-    added_nodes.insert(rhs);
-
-    if (full_arcs_map_.find(lhs) == full_arcs_map_.end()) {
-        full_arcs_map_.emplace(lhs, std::vector<ND>{nd});
-    } else {
-        full_arcs_map_[lhs].push_back(nd);
-    }
-
-    for (auto const& attrs : added_nodes) {
-        if (attrs.GetArity() > 1) {
-            for (Column const* attr : attrs.GetColumns()) {
-                simple_nodes_.insert(*attr);
-                nodes_.insert(Vertical(*attr));
-                dotted_arcs_.emplace(attrs, *attr);
-            }
-        } else {
-            simple_nodes_.insert(*(attrs.GetColumns().front()));
-        }
-    }
+    decompose(nd.GetLhs());
+    decompose(nd.GetRhs());
 
     last_added_ = std::make_shared<ND>(nd);
 }
@@ -55,10 +55,6 @@ NDPath NDPath::Extend(ND const& nd) const {
 }
 
 WeightType NDPath::Weight() const {
-    if (full_arcs_.empty()) {
-        return 1;
-    }
-
     WeightType result{1};
     for (auto const& nd : full_arcs_) {
         result *= nd.GetWeight();
@@ -67,14 +63,16 @@ WeightType NDPath::Weight() const {
 }
 
 bool NDPath::CanAdd(ND const& nd) const {
+    // ND van be added if Lhs is subset of Attr and Rhs is not subset of Attr
+    // (i. e. path must "grow")
     for (Column const* col : nd.GetLhs().GetColumns()) {
-        if (simple_nodes_.find(*col) == simple_nodes_.end()) {
+        if (!simple_nodes_.contains(*col)) {
             return false;
         }
     }
 
     for (Column const* col : nd.GetRhs().GetColumns()) {
-        if (simple_nodes_.find(*col) == simple_nodes_.end()) {
+        if (!simple_nodes_.contains(*col)) {
             return true;
         }
     }
@@ -82,18 +80,9 @@ bool NDPath::CanAdd(ND const& nd) const {
 }
 
 bool NDPath::IsDominatedBy(NDPath const& other) const {
-    using namespace algos::nd::util;
-    return IsSubsetOf(Attr(), other.Attr()) && other.Weight() <= Weight();
-}
-
-bool NDPath::IsDominated(NDPath const& best, std::vector<NDPath>& active_paths) const {
-    if (IsDominatedBy(best)) {
-        return true;
-    }
-
-    std::erase_if(active_paths,
-                  [this](NDPath const& g_gamma) { return g_gamma.IsDominatedBy(*this); });
-    return false;
+    return (std::includes(other.Attr().begin(), other.Attr().end(), Attr().begin(),
+                          Attr().end())) &&
+           other.Weight() <= Weight();
 }
 
 bool NDPath::IsEssential(ND const& nd) const {
@@ -123,7 +112,7 @@ bool NDPath::IsEssential(ND const& nd) const {
     return true;
 }
 
-bool NDPath::CanSafelyRemove(ND const& nd) const {
+bool NDPath::CanRemoveWithNoEffect(ND const& nd) const {
     // Check if it's an ND-path with the same start:
     if (!CanRemove(nd)) {
         return false;
@@ -164,7 +153,7 @@ bool NDPath::IsMinimal() const {
     for (auto const& nd : full_arcs_) {
         if (!IsEssential(nd) &&
             (last_added_ == nullptr || last_added_->GetRhs().Intersects(nd.GetRhs()))) {
-            if (CanSafelyRemove(nd)) {
+            if (CanRemoveWithNoEffect(nd)) {
                 return false;
             }
         }

@@ -29,6 +29,16 @@ public:
 
     explicit Vertical(Column const& col);
 
+    /// Create Vertical from collection of columns
+    // FIXME: either add more checks to this constructor or find a way to get rid of it
+    template <typename It>
+    explicit Vertical(It begin, It end) : schema_(begin->GetSchema()) {
+        column_indices_ = boost::dynamic_bitset<>(schema_->GetNumColumns());
+        for (; begin != end; ++begin) {
+            column_indices_.set(begin->GetIndex());
+        }
+    }
+
     Vertical(Vertical const& other) = default;
     Vertical& operator=(Vertical const& rhs) = default;
     Vertical(Vertical&& other) = default;

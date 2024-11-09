@@ -1,5 +1,7 @@
 #pragma once
 
+#include <ostream>
+
 #include "model/table/column.h"
 #include "model/table/vertical.h"
 
@@ -41,6 +43,11 @@ public:
         return rhs_.GetColumnIndicesAsVector();
     }
 
+    [[nodiscard]] bool Dominates(ND const& other) const {
+        return GetLhs() == other.GetLhs() && GetRhs() == other.GetRhs() &&
+               GetWeight() < other.GetWeight();
+    }
+
     [[nodiscard]] std::string ToShortString() const;
 
     [[nodiscard]] std::string ToLongString() const;
@@ -57,5 +64,10 @@ public:
         return !(*this > other || *this == other);
     }
 };
+
+// For testing purposes
+inline std::ostream& operator<<(std::ostream& os, ND const& nd) {
+    return os << nd.ToLongString();
+}
 
 }  // namespace model

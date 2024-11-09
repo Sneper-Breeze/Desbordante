@@ -14,60 +14,29 @@ namespace model {
 class NDPath {
 private:
     std::set<ND> full_arcs_;
-    std::set<Vertical> nodes_;
     std::set<Column> simple_nodes_;
-    std::map<Vertical, std::vector<ND>> full_arcs_map_;
-    std::multimap<Vertical, Column> dotted_arcs_;
 
     Vertical start_;
     std::shared_ptr<ND> last_added_;
 
+    bool IsDominatedBy(NDPath const& other) const;
+    /// @brief Checks if this ND-path is still an ND-path with the same start and Attr after ND
+    /// removal
+    bool CanRemoveWithNoEffect(ND const& nd) const;
+
 public:
     /// @brief Create an ND-path from a set of NDs and with given start node
     NDPath(std::set<ND> const& delta, Vertical const& start,
-           std::shared_ptr<ND> last_added = nullptr)
-        : full_arcs_(delta), start_(start), last_added_(std::move(last_added)) {
-        nodes_.insert(start_);
+           std::shared_ptr<ND> last_added = nullptr);
 
-        // Fill nodes_ and full_arcs_map_:
-        for (auto const& full_arc : full_arcs_) {
-            auto const& lhs = full_arc.GetLhs();
-            auto const& rhs = full_arc.GetRhs();
-
-            nodes_.insert(lhs);
-            nodes_.insert(rhs);
-
-            if (full_arcs_map_.find(lhs) == full_arcs_map_.end()) {
-                std::vector<ND> vec{full_arc};
-                full_arcs_map_.emplace(lhs, std::move(vec));
-            } else {
-                full_arcs_map_[lhs].push_back(full_arc);
-            }
-        }
-
-        // Fill simple_nodes_:
-        for (auto const& attrs : nodes_) {
-            if (attrs.GetArity() > 1) {
-                for (Column const* attr : attrs.GetColumns()) {
-                    simple_nodes_.insert(*attr);
-                    nodes_.insert(Vertical(*attr));
-                    dotted_arcs_.emplace(attrs, *attr);
-                }
-            } else {
-                simple_nodes_.insert(*(attrs.GetColumns().front()));
-            }
-        }
-    }
+    /// @brief Create an empty ND-path starting in @a start (\f$ G_\emptyset^X \f$)
+    NDPath(Vertical const& start) : NDPath({}, start) {}
 
     NDPath(NDPath const&) = default;
     NDPath(NDPath&&) = default;
     NDPath& operator=(NDPath const&) = default;
     NDPath& operator=(NDPath&&) = default;
     ~NDPath() = default;
-
-    std::set<Vertical> const& Nodes() const {
-        return nodes_;
-    }
 
     std::set<Column> const& Attr() const {
         return simple_nodes_;
@@ -78,11 +47,11 @@ public:
     }
 
     bool IsReachable(Column const& col) const {
-        return simple_nodes_.find(col) != simple_nodes_.end();
+        return simple_nodes_.contains(col);
     }
 
     bool HasND(ND const& nd) const {
-        return full_arcs_.find(nd) != full_arcs_.end();
+        return full_arcs_.contains(nd);
     }
 
     void Add(ND const& nd);
@@ -98,15 +67,18 @@ public:
         return last_added_;
     }
 
-    bool IsDominatedBy(NDPath const& other) const;
+    template <typename ActivePaths>
+    bool IsDominated(NDPath const& best, ActivePaths& active_paths) const {
+        if (IsDominatedBy(best)) {
+            return true;
+        }
 
-    bool IsDominated(NDPath const& best, std::vector<NDPath>& active_paths) const;
+        active_paths.EraseIf(
+                [this](NDPath const& g_gamma) { return g_gamma.IsDominatedBy(*this); });
+        return false;
+    }
 
     bool IsEssential(ND const& nd) const;
-
-    /// @brief Checks if this ND-path is still an ND-path with the same start and Attr after ND
-    /// removal
-    bool CanSafelyRemove(ND const& nd) const;
 
     /// @brief Checks if this ND-path is still an ND-path with the same start after ND removal
     bool CanRemove(ND const& nd) const;

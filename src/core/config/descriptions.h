@@ -34,6 +34,7 @@ constexpr auto kDThreads =
 constexpr auto kDError = "error threshold value for Approximate FD algorithms";
 auto const kDErrorMeasure = details::kDErrorMeasureString.c_str();
 constexpr auto kDMaximumLhs = "max considered LHS size";
+constexpr auto kDMaximumRhs = "max considered RHS size";
 constexpr auto kDMaximumArity = "max considered arity";
 constexpr auto kDSeed = "RNG seed";
 constexpr auto kDMinimumSupport = "minimum support value (between 0 and 1)";
