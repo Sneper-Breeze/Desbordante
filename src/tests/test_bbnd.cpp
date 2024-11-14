@@ -70,7 +70,18 @@ static auto const kTestNDInputTable = MakeInputTable(kTestND);
 
 static std::set<NDTuple> const kTestNDNDs{{{0}, {1}, 4}, {{0}, {2}, 6}, {{0}, {3}, 4},
                                           {{0}, {4}, 5}, {{0}, {5}, 9}, {{0}, {6}, 3},
-                                          {{1}, {0}, 1}, {{1}, {2}, 2}, {{1}, {3}, 2}};
+                                          {{1}, {0}, 1}, {{1}, {2}, 2}, {{1}, {3}, 2},
+                                          {{1}, {4}, 2}, {{1}, {5}, 3}, {{1}, {6}, 2},
+                                          {{2}, {0}, 1}, {{2}, {1}, 2}, {{2}, {3}, 2},
+                                          {{2}, {4}, 2}, {{2}, {5}, 2}, {{2}, {6}, 2},
+                                          {{3}, {0}, 1}, {{3}, {1}, 2}, {{3}, {2}, 4},
+                                          {{3}, {4}, 2}, {{3}, {5}, 4}, {{3}, {6}, 3},
+                                          {{4}, {0}, 1}, {{4}, {1}, 2}, {{4}, {2}, 2},
+                                          {{4}, {3}, 2}, {{4}, {5}, 2}, {{4}, {6}, 2},
+                                          {{5}, {0}, 1}, {{5}, {1}, 1}, {{5}, {2}, 1},
+                                          {{5}, {3}, 1}, {{5}, {4}, 1}, {{5}, {6}, 2},
+                                          {{6}, {0}, 1}, {{6}, {1}, 3}, {{6}, {2}, 4},
+                                          {{6}, {3}, 2}, {{6}, {4}, 3}, {{6}, {5}, 4}};
 
 struct BuildInitialGraphParams {
     config::InputTable input_table;
@@ -227,20 +238,21 @@ protected:
 
     static algos::StdParamsMap GetParamMap(
             CSVConfig const& csv_config,
-            unsigned int max_lhs_ = std::numeric_limits<unsigned int>::max()) {
+            size_t max_lhs = 2, size_t max_rhs = 2) {
         using namespace config::names;
         // add more Params when algorithm will have it
         return {
                 {kCsvConfig, csv_config},
-                {kMaximumLhs, max_lhs_},
+                {kMaximumLhs, max_lhs},
+                {kMaximumRhs, max_rhs},
         };
     }
 
 public:
     static std::unique_ptr<algos::Bbnd> CreateAlgorithmInstance(
             CSVConfig const& config,
-            unsigned int max_lhs = std::numeric_limits<unsigned int>::max()) {
-        return algos::CreateAndLoadAlgorithm<algos::Bbnd>(GetParamMap(config, max_lhs));
+            unsigned int max_lhs = 2, size_t max_rhs = 2) {
+        return algos::CreateAndLoadAlgorithm<algos::Bbnd>(GetParamMap(config, max_lhs, max_rhs));
     }
 };
 
@@ -329,11 +341,19 @@ INSTANTIATE_TEST_SUITE_P(
     ::testing::Values(
         // Test that 1-ary NDs aren't lost:
         BBNDParams(kTestND, std::set<NDTuple>{{{1}, {5}, 3}}, 1, 1),
-        // 2-ary ND that we've derived:
-        BBNDParams(kTestND, std::set<NDTuple>{{{1, 2}, {4, 6}, 4}}, 2, 2),
-        // 3-ary ND that we've derived:
-        BBNDParams(kTestND, std::set<NDTuple>{{{0, 1, 2}, {3, 4, 6}, 8}}, 3, 3)
+        // 2-ary ND from DeriveNDTest:
+        BBNDParams(kTestND, std::set<NDTuple>{{{1, 2}, {4, 6}, 4}}, 2, 2)
         ));
+
+INSTANTIATE_TEST_SUITE_P(
+    BBNDHeavyDatasetsTests, TestBBND,
+    ::testing::Values(
+        // 3-ary ND from DeriveNDTest:
+        BBNDParams(kTestND, std::set<NDTuple>{{{0, 1, 2}, {3, 4, 6}, 8}}, 3, 3),
+        // kMushroom contains 8125 rows
+        BBNDParams(kMushroom, std::set<NDTuple>{{{0}, {2}, 4}, {{0}, {6}, 2}, {{0}, {2, 6}, 8}}, 1, 2)
+    )
+);
 // cland-format on
 
 }  // namespace tests
