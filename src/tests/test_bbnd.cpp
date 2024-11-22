@@ -68,20 +68,14 @@ void PrintNds(std::set<NDTuple> const& nds) {
 
 static auto const kTestNDInputTable = MakeInputTable(kTestND);
 
-static std::set<NDTuple> const kTestNDNDs{{{0}, {1}, 4}, {{0}, {2}, 6}, {{0}, {3}, 4},
-                                          {{0}, {4}, 5}, {{0}, {5}, 9}, {{0}, {6}, 3},
-                                          {{1}, {0}, 1}, {{1}, {2}, 2}, {{1}, {3}, 2},
-                                          {{1}, {4}, 2}, {{1}, {5}, 3}, {{1}, {6}, 2},
-                                          {{2}, {0}, 1}, {{2}, {1}, 2}, {{2}, {3}, 2},
-                                          {{2}, {4}, 2}, {{2}, {5}, 2}, {{2}, {6}, 2},
-                                          {{3}, {0}, 1}, {{3}, {1}, 2}, {{3}, {2}, 4},
-                                          {{3}, {4}, 2}, {{3}, {5}, 4}, {{3}, {6}, 3},
-                                          {{4}, {0}, 1}, {{4}, {1}, 2}, {{4}, {2}, 2},
-                                          {{4}, {3}, 2}, {{4}, {5}, 2}, {{4}, {6}, 2},
-                                          {{5}, {0}, 1}, {{5}, {1}, 1}, {{5}, {2}, 1},
-                                          {{5}, {3}, 1}, {{5}, {4}, 1}, {{5}, {6}, 2},
-                                          {{6}, {0}, 1}, {{6}, {1}, 3}, {{6}, {2}, 4},
-                                          {{6}, {3}, 2}, {{6}, {4}, 3}, {{6}, {5}, 4}};
+static std::set<NDTuple> const kTestNDNDs{
+        {{0}, {1}, 4}, {{0}, {2}, 6}, {{0}, {3}, 4}, {{0}, {4}, 5}, {{0}, {5}, 9}, {{0}, {6}, 3},
+        {{1}, {0}, 1}, {{1}, {2}, 2}, {{1}, {3}, 2}, {{1}, {4}, 2}, {{1}, {5}, 3}, {{1}, {6}, 2},
+        {{2}, {0}, 1}, {{2}, {1}, 2}, {{2}, {3}, 2}, {{2}, {4}, 2}, {{2}, {5}, 2}, {{2}, {6}, 2},
+        {{3}, {0}, 1}, {{3}, {1}, 2}, {{3}, {2}, 4}, {{3}, {4}, 2}, {{3}, {5}, 4}, {{3}, {6}, 3},
+        {{4}, {0}, 1}, {{4}, {1}, 2}, {{4}, {2}, 2}, {{4}, {3}, 2}, {{4}, {5}, 2}, {{4}, {6}, 2},
+        {{5}, {0}, 1}, {{5}, {1}, 1}, {{5}, {2}, 1}, {{5}, {3}, 1}, {{5}, {4}, 1}, {{5}, {6}, 2},
+        {{6}, {0}, 1}, {{6}, {1}, 3}, {{6}, {2}, 4}, {{6}, {3}, 2}, {{6}, {4}, 3}, {{6}, {5}, 4}};
 
 struct BuildInitialGraphParams {
     config::InputTable input_table;
@@ -236,23 +230,25 @@ protected:
         return algorithm;
     }
 
-    static algos::StdParamsMap GetParamMap(
-            CSVConfig const& csv_config,
-            size_t max_lhs = 2, size_t max_rhs = 2) {
+    static algos::StdParamsMap GetParamMap(CSVConfig const& csv_config, size_t max_lhs = 2,
+                                           size_t max_rhs = 2, model::WeightType max_weight = 0) {
         using namespace config::names;
         // add more Params when algorithm will have it
         return {
                 {kCsvConfig, csv_config},
                 {kMaximumLhs, max_lhs},
                 {kMaximumRhs, max_rhs},
+                {kMaximumWeight, max_weight},
         };
     }
 
 public:
-    static std::unique_ptr<algos::Bbnd> CreateAlgorithmInstance(
-            CSVConfig const& config,
-            unsigned int max_lhs = 2, size_t max_rhs = 2) {
-        return algos::CreateAndLoadAlgorithm<algos::Bbnd>(GetParamMap(config, max_lhs, max_rhs));
+    static std::unique_ptr<algos::Bbnd> CreateAlgorithmInstance(CSVConfig const& config,
+                                                                unsigned int max_lhs = 2,
+                                                                size_t max_rhs = 2,
+                                                                model::WeightType max_weight = 0) {
+        return algos::CreateAndLoadAlgorithm<algos::Bbnd>(
+                GetParamMap(config, max_lhs, max_rhs, max_weight));
     }
 };
 
@@ -354,6 +350,31 @@ INSTANTIATE_TEST_SUITE_P(
         BBNDParams(kMushroom, std::set<NDTuple>{{{0}, {2}, 4}, {{0}, {6}, 2}, {{0}, {2, 6}, 8}}, 1, 2)
     )
 );
+
 // cland-format on
+
+TEST_F(TestBbndAlgorithm, WeightPruningTest) {
+    auto input_table = MakeInputTable(kTestND);
+
+    auto relation = ColumnLayoutRelationData::CreateFrom(*input_table, true);
+    input_table->Reset();
+    ActiveNdPathsDataFrame data_frame(relation->GetSchema());
+
+    auto algo = CreateAlgorithmInstance(kTestND, 1, 2, 5);
+    algo->Execute();
+
+    auto actual = algo->NdList();
+
+    // {0} -> {1, 5} shouldn't appear in list, since its weight is 12 (while max_weight is 5)
+    std::vector<model::ColumnIndex> too_heavy_lhs{0};
+    std::vector<model::ColumnIndex> too_heavy_rhs{1, 5};
+
+    for (auto const& nd : actual) {
+        if (nd.GetLhsIndices() == too_heavy_lhs && nd.GetRhsIndices() == too_heavy_rhs) {
+            FAIL() << "ND " << nd << " is too \"heavy\" and shouldn't be derived, but it is";
+        }
+    }
+    SUCCEED();
+}
 
 }  // namespace tests

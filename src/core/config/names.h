@@ -15,6 +15,7 @@ constexpr auto kError = "error";
 constexpr auto kErrorMeasure = "error_measure";
 constexpr auto kMaximumLhs = "max_lhs";
 constexpr auto kMaximumRhs = "max_rhs";
+constexpr auto kMaximumWeight = "max_weight";
 constexpr auto kMaximumArity = "max_arity";
 constexpr auto kSeed = "seed";
 constexpr auto kMinimumSupport = "minsup";

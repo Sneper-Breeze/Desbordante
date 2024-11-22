@@ -20,6 +20,7 @@ private:
     config::EqNullsType is_null_equal_null_;
     size_t max_lhs_arity_;
     size_t max_rhs_arity_;
+    model::WeightType max_weight_;
     util::PrimitiveCollection<model::ND> nd_collection_;
     std::shared_ptr<ColumnLayoutRelationData> relation_;
     std::vector<model::NDPath> queue_;

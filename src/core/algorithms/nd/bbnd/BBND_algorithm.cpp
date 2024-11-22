@@ -39,6 +39,7 @@ void Bbnd::RegisterOptions() {
     RegisterOption(config::kEqualNullsOpt(&is_null_equal_null_));
     RegisterOption(Option<size_t>(&max_lhs_arity_, kMaximumLhs, kDMaximumLhs, 2));
     RegisterOption(Option<size_t>(&max_rhs_arity_, kMaximumRhs, kDMaximumRhs, 2));
+    RegisterOption(Option<model::WeightType>(&max_weight_, kMaximumWeight, kDMaximumWeight, 0));
 }
 
 void Bbnd::LoadDataInternal() {
@@ -49,6 +50,13 @@ void Bbnd::LoadDataInternal() {
     }
 
     auto initial_nds = nd::util::BuildInitialGraph(*relation_);
+
+    // prune by weight:
+    if (max_weight_ > 0) {
+        std::erase_if(initial_nds,
+                      [w = max_weight_](model::ND const& nd) { return nd.GetWeight() > w; });
+    }
+
     for (auto const& nd : initial_nds) {
         nd_collection_.Register(nd);
     }
@@ -92,8 +100,11 @@ unsigned long long Bbnd::ExecuteInternal() {
                     auto rhs = bits_to_vertical(rhs_bitset);
 
                     auto nd = DeriveND(lhs, rhs);
-                    nd_collection_.Register(nd);
-                    graph_->Extend(std::set{nd});
+                    // FIXME(senichenkov): maybe it wuold be better to return bool indicator?
+                    if (nd.GetWeight() < std::numeric_limits<model::WeightType>::max()) {
+                        nd_collection_.Register(nd);
+                        graph_->Extend(std::set{nd});
+                    }
                 }
             }
         }
@@ -162,6 +173,10 @@ model::ND Bbnd::DeriveND(Vertical const& lhs, Vertical const& rhs) {
         auto extensions = graph_copy.SmartExtensions(base_path);
         for (auto candidate : extensions) {
             auto w = candidate.Weight();
+            if (max_weight_ > 0 && w > max_weight_) {
+                // Weight cannot decrease, so don't even check NDs, which are "too heavy"
+                continue;
+            }
             if (std::includes(candidate.Attr().begin(), candidate.Attr().end(), rhs_cols.begin(),
                               rhs_cols.end())) {
                 if (w < weight) {
