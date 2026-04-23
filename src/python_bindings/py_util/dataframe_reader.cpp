@@ -1,15 +1,16 @@
-#include "dataframe_reader.h"
+#include "python_bindings/py_util/dataframe_reader.h"
+
+#include <Python.h>
+#include <pybind11/pybind11.h>
 
 #include <string>
 #include <utility>
 #include <vector>
 
-#include <Python.h>
-#include <pybind11/pybind11.h>
 #include <pybind11/pytypes.h>
 #include <pybind11/stl.h>
 
-#include "model/types/builtin.h"
+#include "core/model/types/builtin.h"
 
 namespace python_bindings {
 

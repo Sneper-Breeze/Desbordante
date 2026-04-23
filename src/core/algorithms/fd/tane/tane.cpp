@@ -1,16 +1,16 @@
-#include "tane.h"
+#include "core/algorithms/fd/tane/tane.h"
 
-#include "afd_measures.h"
-#include "config/error/option.h"
-#include "config/error_measure/option.h"
-#include "enums.h"
-#include "fd/pli_based_fd_algorithm.h"
-#include "model/table/column_data.h"
+#include "core/algorithms/fd/afd_metric/afd_metric_calculator.h"
+#include "core/algorithms/fd/pli_based_fd_algorithm.h"
+#include "core/algorithms/fd/tane/afd_measures.h"
+#include "core/algorithms/fd/tane/enums.h"
+#include "core/config/error/option.h"
+#include "core/config/error_measure/option.h"
+#include "core/model/table/column_data.h"
 
 namespace algos {
 
-Tane::Tane(std::optional<ColumnLayoutRelationDataManager> relation_manager)
-    : tane::TaneCommon(relation_manager) {
+Tane::Tane() : tane::TaneCommon() {
     RegisterOption(config::kAfdErrorMeasureOpt(&afd_error_measure_));
 }
 
@@ -24,16 +24,19 @@ config::ErrorType Tane::CalculateZeroAryFdError(ColumnData const* rhs) {
     return 1;
 }
 
-config::ErrorType Tane::CalculateFdError(model::PositionListIndex const* lhs_pli,
-                                         model::PositionListIndex const* rhs_pli,
-                                         model::PositionListIndex const* joint_pli) {
+config::ErrorType Tane::CalculateFdError(model::PLIWithSingletons const* lhs_pli,
+                                         model::PLIWithSingletons const* rhs_pli,
+                                         model::PLIWithSingletons const* joint_pli) {
     switch (afd_error_measure_) {
         case +AfdErrorMeasure::pdep:
-            return 1 - CalculatePdepMeasure(lhs_pli, joint_pli);
+            return 1 - afd_metric_calculator::AFDMetricCalculator::CalculatePdepMeasure(lhs_pli,
+                                                                                        joint_pli);
         case +AfdErrorMeasure::tau:
-            return 1 - CalculateTauMeasure(lhs_pli, rhs_pli, joint_pli);
+            return 1 - afd_metric_calculator::AFDMetricCalculator::CalculateTau(lhs_pli, rhs_pli,
+                                                                                joint_pli);
         case +AfdErrorMeasure::mu_plus:
-            return 1 - CalculateMuPlusMeasure(lhs_pli, rhs_pli, joint_pli);
+            return 1 - afd_metric_calculator::AFDMetricCalculator::CalculateMuPlus(lhs_pli, rhs_pli,
+                                                                                   joint_pli);
         case +AfdErrorMeasure::rho:
             return 1 - CalculateRhoMeasure(lhs_pli, joint_pli);
         default:

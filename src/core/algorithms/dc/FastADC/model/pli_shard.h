@@ -8,9 +8,9 @@
 #include <utility>
 #include <vector>
 
-#include "dc/FastADC/misc/misc.h"
-#include "dc/FastADC/providers/index_provider.h"
-#include "table/typed_column_data.h"
+#include "core/algorithms/dc/FastADC/misc/misc.h"
+#include "core/algorithms/dc/FastADC/providers/index_provider.h"
+#include "core/model/table/typed_column_data.h"
 
 namespace algos::fastadc {
 
@@ -149,7 +149,7 @@ private:
             return string_provider_->GetIndex(GetValue<std::string>(column, row));
         else
             static_assert(details::DependentFalse<T>::value,
-                          "PliShardBuilder does not unsupport that type");
+                          "PliShardBuilder does not support that type");
     }
 
     template <typename T>

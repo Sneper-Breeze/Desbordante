@@ -1,8 +1,8 @@
 #pragma once
 
-#include "algorithms/algorithm.h"
-#include "algorithms/md/md.h"
-#include "util/primitive_collection.h"
+#include "core/algorithms/algorithm.h"
+#include "core/algorithms/md/md.h"
+#include "core/util/primitive_collection.h"
 
 namespace algos {
 
@@ -21,9 +21,6 @@ protected:
     void RegisterMd(model::MD md_to_register) {
         md_collection_.Register(std::move(md_to_register));
     }
-
-    explicit MdAlgorithm(std::vector<std::string_view> phase_names)
-        : Algorithm(std::move(phase_names)) {}
 
 public:
     std::list<model::MD> const& MdList() const noexcept {

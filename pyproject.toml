@@ -1,10 +1,10 @@
 [build-system]
-requires = ["scikit-build-core", "pybind11"]
+requires = ["scikit-build-core", "pybind11", "cmake>=3.25"]
 build-backend = "scikit_build_core.build"
 
 [project]
 name = "desbordante"
-version = "2.3.2"
+version = "2.4.1"
 description = "Science-intensive high-performance data profiler"
 requires-python = ">=3.8"
 readme = "README_PYPI.md"
@@ -20,6 +20,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",    
     "Topic :: Scientific/Engineering",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
@@ -27,12 +28,13 @@ classifiers = [
 urls = { homepage = "https://desbordante.unidata-platform.ru/", repository = "https://github.com/desbordante/desbordante-core", issues = "https://github.com/desbordante/desbordante-core/issues" }
 
 [tool.scikit-build.cmake.define]
-PYTHON = "INSTALL"
-UNPACK_DATASETS = "OFF"
-COMPILE_TESTS = "OFF"
-BUILD_NATIVE = "OFF"
+DESBORDANTE_BINDINGS = "INSTALL"
+DESBORDANTE_BUILD_NATIVE = "OFF"
+DESBORDANTE_BUILD_TESTS = "OFF"
+DESBORDANTE_UNPACK_DATASETS = "OFF"
 ASAN = "OFF"
 CMAKE_BUILD_TYPE = "Release"
+CPM_SOURCE_CACHE = {env="CPM_SOURCE_CACHE", default = "./cmake/cpm-cache"}
 
 [tool.scikit-build.sdist]
 include = ["lib/*"]
@@ -45,5 +47,87 @@ exclude = [
     "build.bat",
     "test_input_data/",
     "src/tests/*",
-    "examples/*"
+    "examples/*",
+]
+
+[tool.typos]
+[tool.typos.files]
+extend-exclude = [
+    # We only want to check code for now, skip datasets.
+    "test_input_data/",
+]
+[tool.typos.default]
+extend-ignore-re = [
+    # C++ standard library
+    "countr_zero",
+
+    # These strings contain words that are often legitimate typos on their own,
+    # but they are not typos in the context here, they're just used as dummy strings.
+    '"(ba|helo|abd)"', # typos for "by/be", "hello", "and/bad"
+    "// Частоты: abc:2, abd:1",  # "abd" is a typo for "and/bad"
+
+    # "nd" is a common typo for "and", but Numerical Dependency, abbreviated as "ND",
+    # is a legitimate pattern type. These are the strings referring to it.
+    "# --- ND ---",
+    "// AC, ND",
+    "// ND",
+    "an ND",
+    "clusters violating ND",
+    "ND holds",
+    "ND verification",
+    "Weight of ND",
+    "7ND-93L",
+
+    # Academic references and Proper names
+    "BA thesis\\.pdf", # "BA" is Bachelor of Arts (typo for "BY" or "BE")
+    "Comput\\. J\\.", # "Comput" is short for Computer (typo for "Compute")
+    "Peter J\\. Hass", # "Hass" is a surname (typo for "Hash")
+]
+
+[tool.typos.default.extend-identifiers]
+# These are identifiers related to Numerical Dependencies, abbreviated as ND,
+# and "nd" is a common typo for "and", so we chose to explicitly list the identifiers
+# instead of blanket excluding "nd" from checking.
+bind_nd = "bind_nd"
+BindNd = "BindNd"
+bind_nd_verification = "bind_nd_verification"
+BindNdVerification = "BindNdVerification"
+kTestND = "kTestND"
+MakeNdNameTuple = "MakeNdNameTuple"
+nd = "nd"
+ND = "ND"
+nd1 = "nd1"
+nd2 = "nd2"
+nd_holds = "nd_holds"
+NDHolds = "NDHolds"
+nd_module = "nd_module"
+nd_verification = "nd_verification"
+nd_verification_datasets = "nd_verification_datasets"
+nd_verification_module = "nd_verification_module"
+nd_verifier = "nd_verifier"
+NDVerifier = "NDVerifier"
+NDVerifierHeavyDatasets = "NDVerifierHeavyDatasets"
+NDVerifierTestNullEqualNull = "NDVerifierTestNullEqualNull"
+NDVerifierTestSuite = "NDVerifierTestSuite"
+NDVerifyingParams = "NDVerifyingParams"
+TestND = "TestND"
+test_nd_verifier = "test_nd_verifier"
+TestNDVerifying = "TestNDVerifying"
+VerifyND = "VerifyND"
+verifying_nd = "verifying_nd"
+verifying_nd_1 = "verifying_nd_1"
+verifying_nd_1_output = "verifying_nd_1_output"
+verifying_nd_2 = "verifying_nd_2"
+verifying_nd_2_output = "verifying_nd_2_output"
+verifying_nd_3 = "verifying_nd_3"
+verifying_nd_3_output = "verifying_nd_3_output"
+
+[tool.typos.type.jupyter]
+extend-ignore-re = [
+    # Auto-generated notebook metadata
+    '\"id":\s*"[^"\n]*"', # Ignore auto-generated random alphanumeric IDs
+
+    # Code snippets and specific variables in notebooks
+    "ser\\.iloc\\[pos\\]", # "ser" is short for pandas Series
+    "flights_dd_dif_tabl", # "dif" / "tabl" are short for difference / table
 ]

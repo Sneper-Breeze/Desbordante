@@ -1,9 +1,9 @@
 #pragma once
 
-#include "algorithms/algorithm.h"
-#include "config/tabular_data/input_table_type.h"
-#include "model/table/column_layout_typed_relation_data.h"
-#include "nar.h"
+#include "core/algorithms/algorithm.h"
+#include "core/algorithms/nar/nar.h"
+#include "core/config/tabular_data/input_table_type.h"
+#include "core/model/table/column_layout_typed_relation_data.h"
 
 namespace algos {
 
@@ -30,7 +30,7 @@ public:
     };
 
     void ResetState() override;
-    explicit NARAlgorithm(std::vector<std::string_view> phase_names);
+    NARAlgorithm();
 };
 
 }  // namespace algos

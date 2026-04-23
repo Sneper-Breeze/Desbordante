@@ -1,10 +1,11 @@
-#include "gfd/bind_gfd_verification.h"
+#include "python_bindings/gfd/bind_gfd_verification.h"
 
 #include <pybind11/pybind11.h>
+
 #include <pybind11/stl.h>
 
-#include "algorithms/gfd/verification_algorithms.h"
-#include "py_util/bind_primitive.h"
+#include "core/algorithms/gfd/gfd_validator/verification_algorithms.h"
+#include "python_bindings/py_util/bind_primitive.h"
 
 namespace {
 namespace py = pybind11;
@@ -16,10 +17,10 @@ void BindGfdVerification(pybind11::module_& main_module) {
 
     auto gfd_module = main_module.def_submodule("gfd_verification");
 
-    py::class_<Gfd>(gfd_module, "Gfd").def("__str__", &Gfd::ToString);
+    py::class_<model::Gfd>(gfd_module, "Gfd").def("__str__", &model::Gfd::ToString);
 
-    BindPrimitive<GfdValidation, EGfdValidation, NaiveGfdValidation>(
+    BindPrimitive<GfdValidator, EGfdValidator, NaiveGfdValidator>(
             gfd_module, &GfdHandler::GfdList, "GfdAlgorithm", "get_gfds",
-            {"GfdValid", "EGfdValid", "NaiveGfdValid"}, py::return_value_policy::copy);
+            {"GfdValid", "EGfdValid", "NaiveGfdValid"});
 }
 }  // namespace python_bindings

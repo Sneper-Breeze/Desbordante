@@ -1,11 +1,12 @@
-#include "bind_nd_verification.h"
+#include "python_bindings/nd/bind_nd_verification.h"
 
 #include <pybind11/pybind11.h>
+
 #include <pybind11/stl.h>
 
-#include "algorithms/nd/nd_verifier/nd_verifier.h"
-#include "algorithms/nd/nd_verifier/util/highlight.h"
-#include "py_util/bind_primitive.h"
+#include "core/algorithms/nd/nd_verifier/nd_verifier.h"
+#include "core/algorithms/nd/nd_verifier/util/highlight.h"
+#include "python_bindings/py_util/bind_primitive.h"
 
 namespace {
 namespace py = pybind11;
@@ -22,8 +23,8 @@ void BindNdVerification(pybind11::module_& main_module) {
             .def("__str__", &Highlight::ToValuesString)
             .def("to_short_string", &Highlight::ToIndicesString)
             .def("to_long_string", &Highlight::ToValuesString)
-            .def("get_occurences_indices", &Highlight::GetOccurencesIndices)
-            .def_property_readonly("occurences_number", &Highlight::GetOccurencesNumber)
+            .def("get_occurrences_indices", &Highlight::GetOccurrencesIndices)
+            .def_property_readonly("occurrences_number", &Highlight::GetOccurrencesNumber)
             .def_property_readonly("lhs_value", &Highlight::GetLhsValue)
             .def("get_rhs_values", &Highlight::GetRhsValues)
             .def_property_readonly("distinct_rhs_values_number",

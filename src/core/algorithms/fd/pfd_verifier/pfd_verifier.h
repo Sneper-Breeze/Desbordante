@@ -3,14 +3,14 @@
 #include <memory>
 #include <vector>
 
-#include "algorithms/algorithm.h"
-#include "algorithms/fd/pfd_verifier/pfd_stats_calculator.h"
-#include "algorithms/fd/tane/enums.h"
-#include "config/equal_nulls/type.h"
-#include "config/error/type.h"
-#include "config/error_measure/type.h"
-#include "config/indices/type.h"
-#include "config/tabular_data/input_table_type.h"
+#include "core/algorithms/algorithm.h"
+#include "core/algorithms/fd/pfd_verifier/pfd_stats_calculator.h"
+#include "core/algorithms/fd/tane/enums.h"
+#include "core/config/equal_nulls/type.h"
+#include "core/config/error/type.h"
+#include "core/config/error_measure/type.h"
+#include "core/config/indices/type.h"
+#include "core/config/tabular_data/input_table_type.h"
 
 namespace algos {
 
@@ -20,7 +20,6 @@ private:
 
     config::IndicesType lhs_indices_;
     config::IndicesType rhs_indices_;
-    config::EqNullsType is_null_equal_null_;
     config::PfdErrorMeasureType error_measure_ = +PfdErrorMeasure::per_tuple;
 
     std::shared_ptr<ColumnLayoutRelationData> relation_;

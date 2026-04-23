@@ -50,7 +50,7 @@ jobs:
 
           - os: ubuntu-latest
             toolset: llvm-clang
-            env: CXX=clang++-17 CXXFLAGS="-stdlib=libc++" LDFLAGS="-lc++abi"
+            env: CXX=clang++-20 CXXFLAGS="-stdlib=libc++" LDFLAGS="-lc++abi"
 
           # Uncomment this to enable macOS GCC tests:
           # - os: macos-latest
@@ -77,14 +77,12 @@ jobs:
 
     runs-on: ${{ matrix.system.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Install dependencies
         uses: ./.github/composite-actions/install-dependencies
         with:
           os: ${{ matrix.system.os }}
           toolset: ${{ matrix.system.toolset }}
-      - name: Download datasets
-        uses: ./.github/composite-actions/download-datasets
       - name: Build
         shell: bash
         run: |
@@ -105,4 +103,4 @@ jobs:
             export CTEST_ARGS="-j ${nproc}"
           fi
 
-          ctest --exclude-regex ".*HeavyDatasets.*" $CTEST_ARGS
+          ctest --exclude-regex ".*HeavyDatasets.*" --output-on-failure $CTEST_ARGS

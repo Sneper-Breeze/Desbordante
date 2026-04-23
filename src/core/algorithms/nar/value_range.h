@@ -1,9 +1,8 @@
 #pragma once
 
-#include <enum.h>
-
-#include "model/table/column_layout_typed_relation_data.h"
-#include "model/types/type.h"
+#include "core/model/table/column_layout_typed_relation_data.h"
+#include "core/model/types/type.h"
+#include "core/util/better_enum_with_visibility.h"
 
 namespace model {
 

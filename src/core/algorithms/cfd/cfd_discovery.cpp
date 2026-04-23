@@ -1,27 +1,24 @@
-#include "cfd_discovery.h"
+#include "core/algorithms/cfd/cfd_discovery.h"
 
 #include <iterator>
 #include <thread>
 
-#include "algorithms/cfd/util/cfd_output_util.h"
-#include "algorithms/cfd/util/set_util.h"
-#include "config/equal_nulls/option.h"
-#include "config/names_and_descriptions.h"
-#include "config/option_using.h"
-#include "config/tabular_data/input_table/option.h"
+#include "core/algorithms/cfd/util/cfd_output_util.h"
+#include "core/algorithms/cfd/util/set_util.h"
+#include "core/config/equal_nulls/option.h"
+#include "core/config/names_and_descriptions.h"
+#include "core/config/option_using.h"
+#include "core/config/tabular_data/input_table/option.h"
 
 // see algorithms/cfd/LICENSE
 
 namespace algos::cfd {
 
-CFDDiscovery::CFDDiscovery(std::vector<std::string_view> phase_names)
-    : Algorithm(std::move(phase_names)) {
+CFDDiscovery::CFDDiscovery() : Algorithm() {
     using namespace config::names;
     RegisterOptions();
     MakeOptionsAvailable({kTable, kCfdColumnsNumber, kCfdTuplesNumber});
 }
-
-CFDDiscovery::CFDDiscovery() : CFDDiscovery({kDefaultPhaseName}) {}
 
 void CFDDiscovery::LoadDataInternal() {
     relation_ = CFDRelationData::CreateFrom(*input_table_, columns_number_, tuples_number_);

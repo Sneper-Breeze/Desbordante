@@ -2,9 +2,9 @@
 
 #include <string>
 
-#include "model/table/column.h"
-#include "model/table/vertical.h"
-#include "raw_fd.h"
+#include "core/algorithms/fd/raw_fd.h"
+#include "core/model/table/column.h"
+#include "core/model/table/vertical.h"
 
 class FD {
 private:
@@ -18,6 +18,10 @@ public:
 
     std::string ToJSONString() const {
         return "{\"lhs\": " + lhs_.ToIndicesString() + ", \"rhs\": " + rhs_.ToIndicesString() + "}";
+    }
+
+    std::shared_ptr<RelationalSchema const> GetSchema() const {
+        return schema_;
     }
 
     Vertical const& GetLhs() const {

@@ -1,11 +1,12 @@
 # Build directories, libraries and binary files
-**/myeasylog.log
 .venv/
 build/
 cmake-build-debug/
 dist/
 lib/
 venv/
+datasets/*.sha256
+datasets/*.zip
 
 # IDE and related files
 .cache/
@@ -14,3 +15,6 @@ venv/
 
 # OS Generated file
 **/.DS_Store
+
+.env
+__pycache__

@@ -11,11 +11,11 @@
 
 #include <boost/dynamic_bitset.hpp>
 
-#include "config/error/type.h"
-#include "model/table/column_combination.h"
-#include "model/table/column_domain_iterator.h"
-#include "model/table/column_index.h"
-#include "util/bitset_utils.h"
+#include "core/config/error/type.h"
+#include "core/model/table/column_combination.h"
+#include "core/model/table/column_domain_iterator.h"
+#include "core/model/table/column_index.h"
+#include "core/util/bitset_utils.h"
 
 namespace algos::spider {
 
@@ -28,15 +28,15 @@ public:
     using Iterator = model::ColumnDomainIterator;
 
 protected:
-    AttributeIndex id_;         /* attribute unique identificator */
-    AttributeIndex attr_count_; /* attribute unique identificator */
+    AttributeIndex id_;         /* attribute unique identifier */
+    AttributeIndex attr_count_; /* attribute unique identifier */
     Iterator it_;               /* domain iterator */
 
 public:
     Attribute(AttributeIndex attr_id, AttributeIndex attr_count, model::ColumnDomain const& domain)
         : id_(attr_id), attr_count_(attr_count), it_(domain) {}
 
-    /// get unqiue attribute id
+    /// get unique attribute id
     AttributeIndex GetId() const noexcept {
         return id_;
     }

@@ -3,10 +3,10 @@
 #include <random>
 #include <stack>
 
-#include "algorithms/fd/pli_based_fd_algorithm.h"
-#include "config/thread_number/type.h"
-#include "model/table/vertical.h"
-#include "partition_storage/partition_storage.h"
+#include "core/algorithms/fd/dfd/partition_storage/partition_storage.h"
+#include "core/algorithms/fd/pli_based_fd_algorithm.h"
+#include "core/config/thread_number/type.h"
+#include "core/model/table/vertical.h"
 
 namespace algos {
 
@@ -23,7 +23,7 @@ private:
     unsigned long long ExecuteInternal() final;
 
 public:
-    DFD(std::optional<ColumnLayoutRelationDataManager> relation_manager = std::nullopt);
+    DFD();
 };
 
 }  // namespace algos

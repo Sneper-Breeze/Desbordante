@@ -1,19 +1,17 @@
-#include "ucc_algorithm.h"
+#include "core/algorithms/ucc/ucc_algorithm.h"
 
-#include "config/equal_nulls/option.h"
-#include "config/tabular_data/input_table/option.h"
+#include "core/config/equal_nulls/option.h"
+#include "core/config/tabular_data/input_table/option.h"
 
 namespace algos {
 
-UCCAlgorithm::UCCAlgorithm(std::vector<std::string_view> phase_names)
-    : Algorithm(std::move(phase_names)) {
+UCCAlgorithm::UCCAlgorithm() : Algorithm() {
     RegisterOptions();
-    MakeOptionsAvailable({config::kTableOpt.GetName(), config::kEqualNullsOpt.GetName()});
+    MakeOptionsAvailable({config::kTableOpt.GetName()});
 }
 
 void UCCAlgorithm::RegisterOptions() {
     RegisterOption(config::kTableOpt(&input_table_));
-    RegisterOption(config::kEqualNullsOpt(&is_null_equal_null_));
 }
 
 }  // namespace algos

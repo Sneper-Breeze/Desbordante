@@ -1,19 +1,18 @@
-#include "dfd.h"
+#include "core/algorithms/fd/dfd/dfd.h"
 
 #include <boost/asio.hpp>
-#include <easylogging++.h>
 
-#include "config/max_lhs/option.h"
-#include "config/thread_number/option.h"
-#include "lattice_traversal/lattice_traversal.h"
-#include "model/table/column_layout_relation_data.h"
-#include "model/table/position_list_index.h"
-#include "model/table/relational_schema.h"
+#include "core/algorithms/fd/dfd/lattice_traversal/lattice_traversal.h"
+#include "core/config/max_lhs/option.h"
+#include "core/config/thread_number/option.h"
+#include "core/model/table/column_layout_relation_data.h"
+#include "core/model/table/position_list_index.h"
+#include "core/model/table/relational_schema.h"
+#include "core/util/logger.h"
 
 namespace algos {
 
-DFD::DFD(std::optional<ColumnLayoutRelationDataManager> relation_manager)
-    : PliBasedFDAlgorithm({kDefaultPhaseName}, relation_manager) {
+DFD::DFD() : PliBasedFDAlgorithm() {
     RegisterOptions();
 }
 
@@ -30,8 +29,7 @@ void DFD::ResetStateFd() {
 }
 
 unsigned long long DFD::ExecuteInternal() {
-    auto partition_storage = std::make_unique<PartitionStorage>(
-            relation_.get(), CachingMethod::kAllCaching, CacheEvictionMethod::kMedainUsage);
+    auto partition_storage = std::make_unique<PartitionStorage>(relation_.get());
     RelationalSchema const* const schema = relation_->GetSchema();
 
     auto start_time = std::chrono::system_clock::now();
@@ -48,12 +46,10 @@ unsigned long long DFD::ExecuteInternal() {
         }
     }
 
-    double progress_step = 100.0 / schema->GetNumColumns();
     boost::asio::thread_pool search_space_pool(number_of_threads_);
 
     for (auto& rhs : schema->GetColumns()) {
-        boost::asio::post(search_space_pool, [this, &rhs, schema, progress_step,
-                                              &partition_storage]() {
+        boost::asio::post(search_space_pool, [this, &rhs, schema, &partition_storage]() {
             ColumnData const& rhs_data = relation_->GetColumnData(rhs->GetIndex());
             model::PositionListIndex const* const rhs_pli = rhs_data.GetPositionListIndex();
 
@@ -62,8 +58,7 @@ unsigned long long DFD::ExecuteInternal() {
              * this RHS, so we register it and move to the next RHS
              * */
             if (rhs_pli->GetNepAsLong() == relation_->GetNumTuplePairs()) {
-                RegisterFd(*(schema->empty_vertical_), *rhs, relation_->GetSharedPtrSchema());
-                AddProgress(progress_step);
+                RegisterFd(schema->CreateEmptyVertical(), *rhs, relation_->GetSharedPtrSchema());
                 return;
             }
 
@@ -74,20 +69,17 @@ unsigned long long DFD::ExecuteInternal() {
             for (auto const& minimal_dependency_lhs : minimal_deps) {
                 RegisterFd(minimal_dependency_lhs, *rhs, relation_->GetSharedPtrSchema());
             }
-            AddProgress(progress_step);
-            LOG(INFO) << static_cast<int>(GetProgress().second);
         });
     }
 
     search_space_pool.join();
-    SetProgress(100);
 
     auto elapsed_milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::system_clock::now() - start_time);
     long long apriori_millis = elapsed_milliseconds.count();
 
-    LOG(INFO) << "> FD COUNT: " << fd_collection_.Size();
-    LOG(INFO) << "> HASH: " << PliBasedFDAlgorithm::Fletcher16();
+    LOG_INFO("> FD COUNT: {}", fd_collection_.Size());
+    LOG_INFO("> HASH: {}", PliBasedFDAlgorithm::Fletcher16());
 
     return apriori_millis;
 }

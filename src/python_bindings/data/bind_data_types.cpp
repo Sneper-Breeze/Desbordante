@@ -1,10 +1,11 @@
-#include "bind_data_types.h"
+#include "python_bindings/data/bind_data_types.h"
 
 #include <pybind11/pybind11.h>
+
 #include <pybind11/stl.h>
 
-#include "config/tabular_data/input_table_type.h"
-#include "model/table/column_combination.h"
+#include "core/config/tabular_data/input_table_type.h"
+#include "core/model/table/column_combination.h"
 
 namespace {
 namespace py = pybind11;
@@ -28,6 +29,20 @@ void BindDataTypes(py::module_& main_module) {
                      return py::make_tuple(cc.GetTableIndex(), py::cast(cc.GetColumnIndices()));
                  })
             .def_property_readonly("table_index", &ColumnCombination::GetTableIndex)
-            .def_property_readonly("column_indices", &ColumnCombination::GetColumnIndices);
+            .def_property_readonly("column_indices", &ColumnCombination::GetColumnIndices)
+            .def(py::pickle(
+                    // __getstate__
+                    [](ColumnCombination const& cc) {
+                        return py::make_tuple(cc.GetTableIndex(), cc.GetColumnIndices());
+                    },
+                    // __setstate__
+                    [](py::tuple t) {
+                        if (t.size() != 2) {
+                            throw std::runtime_error("Invalid state for ColumnCombination pickle!");
+                        }
+                        auto table_index = t[0].cast<model::ColumnIndex>();
+                        auto col_indices = t[1].cast<std::vector<model::ColumnIndex>>();
+                        return ColumnCombination(table_index, col_indices);
+                    }));
 }
 }  // namespace python_bindings

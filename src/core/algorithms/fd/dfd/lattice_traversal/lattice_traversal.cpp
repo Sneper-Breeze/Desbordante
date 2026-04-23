@@ -1,8 +1,8 @@
-#include "lattice_traversal.h"
+#include "core/algorithms/fd/dfd/lattice_traversal/lattice_traversal.h"
 
 #include <random>
 
-#include "model/table/position_list_index.h"
+#include "core/model/table/position_list_index.h"
 
 LatticeTraversal::LatticeTraversal(Column const* const rhs,
                                    ColumnLayoutRelationData const* const relation,
@@ -32,7 +32,7 @@ std::unordered_set<Vertical> LatticeTraversal::FindLHSs() {
     std::stack<Vertical> seeds;
 
     /* Temporary fix. I think `GetOrderHighDistinctCount` should return vector of
-     * unsigned integers since `order` sould be something non-negative.
+     * unsigned integers since `order` should be something non-negative.
      */
     for (unsigned partition_index :
          column_order_.GetOrderHighDistinctCount(Vertical(*rhs_).Invert())) {
@@ -48,7 +48,7 @@ std::unordered_set<Vertical> LatticeTraversal::FindLHSs() {
                 node = std::move(seeds.top());
                 seeds.pop();
             } else {
-                node = *schema->empty_vertical_;
+                node = schema->CreateEmptyVertical();
             }
 
             do {
@@ -102,7 +102,7 @@ std::unordered_set<Vertical> LatticeTraversal::FindLHSs() {
                 }
 
                 node = PickNextNode(node, rhs_->GetIndex());
-            } while (node != *node.GetSchema()->empty_vertical_);
+            } while (!node.IsEmpty());
         }
         seeds = GenerateNextSeeds(rhs_);
     } while (!seeds.empty());
@@ -149,7 +149,7 @@ Vertical LatticeTraversal::PickNextNode(Vertical const& node, unsigned int rhs_i
             for (auto const& pruned_subset : pruned_non_dep_subsets) {
                 observations_[pruned_subset] = NodeCategory::kNonDependency;
             }
-            SubstractSets(unchecked_subsets, pruned_non_dep_subsets);
+            SubtractSets(unchecked_subsets, pruned_non_dep_subsets);
 
             if (unchecked_subsets.empty() && pruned_non_dep_subsets.empty()) {
                 minimal_deps_.insert(node);
@@ -174,8 +174,8 @@ Vertical LatticeTraversal::PickNextNode(Vertical const& node, unsigned int rhs_i
                 observations_[pruned_superset] = NodeCategory::kDependency;
             }
 
-            SubstractSets(unchecked_supersets, pruned_dep_supersets);
-            SubstractSets(unchecked_supersets, pruned_non_dep_supersets);
+            SubtractSets(unchecked_supersets, pruned_dep_supersets);
+            SubtractSets(unchecked_supersets, pruned_non_dep_supersets);
 
             if (unchecked_supersets.empty() && pruned_non_dep_supersets.empty()) {
                 maximal_non_deps_.insert(node);
@@ -189,7 +189,7 @@ Vertical LatticeTraversal::PickNextNode(Vertical const& node, unsigned int rhs_i
         }
     }
 
-    Vertical next_node = *(node.GetSchema()->empty_vertical_);
+    Vertical next_node = node.GetSchema()->CreateEmptyVertical();
     if (!trace_.empty()) {
         next_node = trace_.top();
         trace_.pop();
@@ -302,9 +302,9 @@ std::list<Vertical> LatticeTraversal::Minimize(
     return new_seeds;
 }
 
-void LatticeTraversal::SubstractSets(std::unordered_set<Vertical>& set,
-                                     std::unordered_set<Vertical> const& set_to_substract) {
-    for (auto const& node_to_delete : set_to_substract) {
+void LatticeTraversal::SubtractSets(std::unordered_set<Vertical>& set,
+                                    std::unordered_set<Vertical> const& set_to_subtract) {
+    for (auto const& node_to_delete : set_to_subtract) {
         auto found_element_iter = set.find(node_to_delete);
         if (found_element_iter != set.end()) {
             set.erase(found_element_iter);

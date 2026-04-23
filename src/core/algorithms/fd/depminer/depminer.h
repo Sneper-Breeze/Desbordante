@@ -1,7 +1,7 @@
 #pragma once
 
-#include "algorithms/fd/depminer/cmax_set.h"
-#include "algorithms/fd/pli_based_fd_algorithm.h"
+#include "core/algorithms/fd/depminer/cmax_set.h"
+#include "core/algorithms/fd/pli_based_fd_algorithm.h"
 
 namespace algos {
 
@@ -16,15 +16,11 @@ private:
     void LhsForColumn(std::unique_ptr<Column> const& column, std::vector<CMAXSet> const& cmax_sets);
     std::vector<CMAXSet> GenerateCmaxSets(std::unordered_set<Vertical> const& agree_sets);
 
-    double progress_step_ = 0;
     RelationalSchema const* schema_ = nullptr;
 
     void ResetStateFd() final {}
 
     unsigned long long ExecuteInternal() final;
-
-public:
-    Depminer(std::optional<ColumnLayoutRelationDataManager> relation_manager = std::nullopt);
 };
 
 }  // namespace algos

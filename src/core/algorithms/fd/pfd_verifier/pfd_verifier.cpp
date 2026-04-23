@@ -1,21 +1,20 @@
-#include "algorithms/fd/pfd_verifier/pfd_verifier.h"
+#include "core/algorithms/fd/pfd_verifier/pfd_verifier.h"
 
 #include <chrono>
 #include <memory>
 
-#include "algorithms/algorithm.h"
-#include "config/equal_nulls/option.h"
-#include "config/error_measure/option.h"
-#include "config/indices/option.h"
-#include "config/names.h"
-#include "config/tabular_data/input_table/option.h"
+#include "core/algorithms/algorithm.h"
+#include "core/config/equal_nulls/option.h"
+#include "core/config/error_measure/option.h"
+#include "core/config/indices/option.h"
+#include "core/config/names.h"
+#include "core/config/tabular_data/input_table/option.h"
 
 namespace algos {
 
 void PFDVerifier::RegisterOptions() {
     auto get_schema_cols = [this]() { return relation_->GetSchema()->GetNumColumns(); };
     RegisterOption(config::kTableOpt(&input_table_));
-    RegisterOption(config::kEqualNullsOpt(&is_null_equal_null_));
     RegisterOption(config::kLhsIndicesOpt(&lhs_indices_, get_schema_cols));
     RegisterOption(config::kRhsIndicesOpt(&rhs_indices_, get_schema_cols));
     RegisterOption(config::kPfdErrorMeasureOpt(&error_measure_));
@@ -27,7 +26,7 @@ void PFDVerifier::MakeExecuteOptsAvailable() {
 }
 
 void PFDVerifier::LoadDataInternal() {
-    relation_ = ColumnLayoutRelationData::CreateFrom(*input_table_, is_null_equal_null_);
+    relation_ = ColumnLayoutRelationData::CreateFrom(*input_table_);
     if (relation_->GetColumnData().empty()) {
         throw std::runtime_error("Got an empty dataset: pFD verifying is meaningless.");
     }
@@ -58,10 +57,10 @@ std::shared_ptr<model::PLI const> PFDVerifier::CalculatePLI(
     return pli;
 }
 
-PFDVerifier::PFDVerifier() : Algorithm({}) {
+PFDVerifier::PFDVerifier() : Algorithm() {
     using namespace config::names;
     RegisterOptions();
-    MakeOptionsAvailable({kTable, kEqualNulls});
+    MakeOptionsAvailable({kTable});
 }
 
 }  // namespace algos

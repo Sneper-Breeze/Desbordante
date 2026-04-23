@@ -1,4 +1,4 @@
-#include "differential_functions.h"
+#include "core/algorithms/nar/des/differential_functions.h"
 
 #include <algorithm>
 
@@ -43,7 +43,7 @@ MutationFunction EnumToMutationStrategy(DifferentialStrategy strategy) {
         case DifferentialStrategy::rand1Bin:
             return Rand1Bin;
         default:
-            throw std::logic_error("No mutation function corresponding to DifferentialStategy.");
+            throw std::logic_error("No mutation function corresponding to DifferentialStrategy.");
     }
 }
 

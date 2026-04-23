@@ -3,12 +3,12 @@
 #include <random>
 #include <stack>
 
-#include "../column_order/column_order.h"
-#include "../lattice_observations/lattice_observations.h"
-#include "../partition_storage/partition_storage.h"
-#include "../pruning_maps/dependencies_map.h"
-#include "../pruning_maps/non_dependencies_map.h"
-#include "model/table/vertical.h"
+#include "core/algorithms/fd/dfd/column_order/column_order.h"
+#include "core/algorithms/fd/dfd/lattice_observations/lattice_observations.h"
+#include "core/algorithms/fd/dfd/partition_storage/partition_storage.h"
+#include "core/algorithms/fd/dfd/pruning_maps/dependencies_map.h"
+#include "core/algorithms/fd/dfd/pruning_maps/non_dependencies_map.h"
+#include "core/model/table/vertical.h"
 
 class LatticeTraversal {
 private:
@@ -35,8 +35,8 @@ private:
 
     std::list<Vertical> Minimize(std::unordered_set<Vertical> const& node_list) const;
     Vertical const& TakeRandom(std::unordered_set<Vertical>& node_set);
-    static void SubstractSets(std::unordered_set<Vertical>& set,
-                              std::unordered_set<Vertical> const& set_to_substract);
+    static void SubtractSets(std::unordered_set<Vertical>& set,
+                             std::unordered_set<Vertical> const& set_to_subtract);
 
 public:
     LatticeTraversal(Column const* const rhs, ColumnLayoutRelationData const* const relation,

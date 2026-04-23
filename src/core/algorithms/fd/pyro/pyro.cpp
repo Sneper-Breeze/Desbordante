@@ -1,24 +1,22 @@
-#include "pyro.h"
+#include "core/algorithms/fd/pyro/pyro.h"
 
 #include <chrono>
 #include <mutex>
 #include <thread>
 
-#include <easylogging++.h>
-
-#include "algorithms/fd/pyrocommon/core/fd_g1_strategy.h"
-#include "config/error/option.h"
-#include "config/max_lhs/option.h"
-#include "config/names_and_descriptions.h"
-#include "config/option_using.h"
-#include "config/thread_number/option.h"
+#include "core/algorithms/fd/pyrocommon/core/fd_g1_strategy.h"
+#include "core/config/error/option.h"
+#include "core/config/max_lhs/option.h"
+#include "core/config/names_and_descriptions.h"
+#include "core/config/option_using.h"
+#include "core/config/thread_number/option.h"
+#include "core/util/logger.h"
 
 namespace algos {
 
 std::mutex search_spaces_mutex;
 
-Pyro::Pyro(std::optional<ColumnLayoutRelationDataManager> relation_manager)
-    : PliBasedFDAlgorithm({kDefaultPhaseName}, relation_manager) {
+Pyro::Pyro() : PliBasedFDAlgorithm() {
     RegisterOptions();
     fd_consumer_ = [this](auto const& fd) {
         this->DiscoverFd(fd);
@@ -82,28 +80,26 @@ unsigned long long Pyro::ExecuteInternal() {
     unsigned int total_error_calc_count = 0;
     unsigned long long total_ascension = 0;
     unsigned long long total_trickle = 0;
-    double progress_step = 100.0 / search_spaces_.size();
 
-    auto const work_on_search_space =
-            [this, &progress_step](std::list<std::unique_ptr<SearchSpace>>& search_spaces,
-                                   ProfilingContext* profiling_context, int id) {
-                while (true) {
-                    std::unique_ptr<SearchSpace> polled_space;
-                    {
-                        std::scoped_lock<std::mutex> lock(search_spaces_mutex);
-                        if (search_spaces.empty()) {
-                            break;
-                        }
-                        polled_space = std::move(search_spaces.front());
-                        search_spaces.pop_front();
-                    }
-                    LOG(TRACE) << "Thread" << id << " got SearchSpace";
-                    polled_space->SetContext(profiling_context);
-                    polled_space->EnsureInitialized();
-                    polled_space->Discover();
-                    AddProgress(progress_step);
+    auto const work_on_search_space = [](std::list<std::unique_ptr<SearchSpace>>& search_spaces,
+                                         ProfilingContext* profiling_context,
+                                         [[maybe_unused]] int id) {
+        while (true) {
+            std::unique_ptr<SearchSpace> polled_space;
+            {
+                std::scoped_lock<std::mutex> lock(search_spaces_mutex);
+                if (search_spaces.empty()) {
+                    break;
                 }
-            };
+                polled_space = std::move(search_spaces.front());
+                search_spaces.pop_front();
+            }
+            LOG_TRACE("Thread {} got SearchSpace", id);
+            polled_space->SetContext(profiling_context);
+            polled_space->EnsureInitialized();
+            polled_space->Discover();
+        }
+    };
 
     std::vector<std::thread> threads;
     for (int i = 0; i < parameters_.parallelism; i++) {
@@ -115,18 +111,17 @@ unsigned long long Pyro::ExecuteInternal() {
         threads[i].join();
     }
 
-    SetProgress(100);
     auto elapsed_milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::system_clock::now() - start_time);
 
-    LOG(INFO) << boost::format{"FdG1 error calculation: %1% ms"} % (FdG1Strategy::nanos_ / 1000000);
-    LOG(INFO) << "Init time: " << init_time_millis << "ms";
-    LOG(INFO) << "Time: " << elapsed_milliseconds.count() << " milliseconds";
-    LOG(INFO) << "Error calculation count: " << total_error_calc_count;
-    LOG(INFO) << "Total ascension time: " << total_ascension << "ms";
-    LOG(INFO) << "Total trickle time: " << total_trickle << "ms";
-    LOG(INFO) << "Total intersection time: " << model::PositionListIndex::micros_ / 1000 << "ms";
-    LOG(INFO) << "HASH: " << PliBasedFDAlgorithm::Fletcher16();
+    LOG_INFO("FdG1 error calculation: {} ms", (FdG1Strategy::nanos_ / 1000000));
+    LOG_INFO("Init time: {} ms", init_time_millis);
+    LOG_INFO("Time: {} milliseconds", elapsed_milliseconds.count());
+    LOG_INFO("Error calculation count: {}", total_error_calc_count);
+    LOG_INFO("Total ascension time: {} ms", total_ascension);
+    LOG_INFO("Total trickle time: {} ms", total_trickle);
+    LOG_INFO("Total intersection time: {} ms", model::PositionListIndex::micros_ / 1000);
+    LOG_INFO("HASH: {}", PliBasedFDAlgorithm::Fletcher16());
     return elapsed_milliseconds.count();
 }
 

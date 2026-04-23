@@ -1,20 +1,19 @@
-#include "algorithms/ucc/pyroucc/pyroucc.h"
+#include "core/algorithms/ucc/pyroucc/pyroucc.h"
 
 #include <chrono>
 #include <mutex>
 #include <thread>
 
-#include <easylogging++.h>
-
-#include "algorithms/fd/pyrocommon/core/key_g1_strategy.h"
-#include "config/error/option.h"
-#include "config/max_lhs/option.h"
-#include "config/names_and_descriptions.h"
-#include "config/option_using.h"
+#include "core/algorithms/fd/pyrocommon/core/key_g1_strategy.h"
+#include "core/config/error/option.h"
+#include "core/config/max_lhs/option.h"
+#include "core/config/names_and_descriptions.h"
+#include "core/config/option_using.h"
+#include "core/util/logger.h"
 
 namespace algos {
 
-PyroUCC::PyroUCC() : UCCAlgorithm({kDefaultPhaseName}) {
+PyroUCC::PyroUCC() : UCCAlgorithm() {
     RegisterOptions();
     fd_consumer_ = nullptr;
     ucc_consumer_ = [this](auto const& ucc) {
@@ -37,7 +36,7 @@ void PyroUCC::MakeExecuteOptsAvailable() {
 }
 
 void PyroUCC::LoadDataInternal() {
-    relation_ = ColumnLayoutRelationData::CreateFrom(*input_table_, is_null_equal_null_);
+    relation_ = ColumnLayoutRelationData::CreateFrom(*input_table_);
 
     if (relation_->GetColumnData().empty()) {
         throw std::runtime_error("Got an empty dataset: UCC mining is meaningless.");
@@ -83,14 +82,13 @@ unsigned long long PyroUCC::ExecuteInternal() {
     search_space_->SetContext(profiling_context.get());
     search_space_->EnsureInitialized();
     search_space_->Discover();
-    SetProgress(100);
 
     auto elapsed_milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::system_clock::now() - start_time);
 
-    LOG(INFO) << "Init time: " << init_time_millis << "ms";
-    LOG(INFO) << "Time: " << elapsed_milliseconds.count() << " milliseconds";
-    LOG(INFO) << "Total intersection time: " << model::PositionListIndex::micros_ / 1000 << "ms";
+    LOG_INFO("Init time: {} ms", init_time_millis);
+    LOG_INFO("Time: {}  milliseconds", elapsed_milliseconds.count());
+    LOG_INFO("Total intersection time: {} ms", model::PositionListIndex::micros_ / 1000);
     return elapsed_milliseconds.count();
 }
 

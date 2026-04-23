@@ -1,13 +1,11 @@
-#include "cfd_relation_data.h"
+#include "core/algorithms/cfd/model/cfd_relation_data.h"
 
 #include <algorithm>
 #include <cstddef>
 #include <iostream>
 #include <random>
 
-#include <easylogging++.h>
-
-#include "algorithms/cfd/util/set_util.h"
+#include "core/algorithms/cfd/util/set_util.h"
 
 // see algorithms/cfd/LICENSE
 
@@ -18,7 +16,7 @@ size_t CFDRelationData::GetNumRows() const {
 }
 
 void CFDRelationData::AddNewItemsInFullTable(ItemDictionary& item_dictionary,
-                                             ColumnesValuesDict& columns_values_dict,
+                                             ColumnsValuesDict& columns_values_dict,
                                              std::vector<ItemInfo>& items,
                                              std::vector<std::string> const& string_row,
                                              std::vector<int>& int_row,
@@ -54,7 +52,7 @@ std::unique_ptr<CFDRelationData> CFDRelationData::CreateFrom(model::IDatasetStre
     std::vector<Transaction> data_rows;
     ItemDictionary item_dictionary;
     std::vector<ItemInfo> items;
-    ColumnesValuesDict columns_values_dict;
+    ColumnsValuesDict columns_values_dict;
     int unique_elems_number = 1;
 
     unsigned num_columns = parser.GetNumberOfColumns();
@@ -78,7 +76,6 @@ std::unique_ptr<CFDRelationData> CFDRelationData::CreateFrom(model::IDatasetStre
         schema->AppendColumn(std::move(column));
         column_data.emplace_back(schema->GetColumn(i), columns_values_dict[i]);
     }
-    schema->Init();
 
     return std::make_unique<CFDRelationData>(std::move(schema), std::move(column_data),
                                              std::move(data_rows), std::move(item_dictionary),
@@ -86,7 +83,7 @@ std::unique_ptr<CFDRelationData> CFDRelationData::CreateFrom(model::IDatasetStre
 }
 
 void CFDRelationData::AddNewItemsInPartialTable(ItemDictionary& item_dictionary,
-                                                ColumnesValuesDict& columns_values_dict,
+                                                ColumnsValuesDict& columns_values_dict,
                                                 std::vector<ItemInfo>& items,
                                                 std::vector<std::string> const& string_row,
                                                 std::vector<int> const& columns_numbers_list,
@@ -124,7 +121,7 @@ std::unique_ptr<CFDRelationData> CFDRelationData::CreateFrom(model::IDatasetStre
     std::vector<Transaction> data_rows;
     ItemDictionary item_dictionary;
     std::vector<ItemInfo> items;
-    ColumnesValuesDict columns_values_dict;
+    ColumnsValuesDict columns_values_dict;
     int unique_elems_number = 1;
     std::random_device rd;   // only used once to initialise (seed) engine
     std::mt19937 rng(rd());  // random-number engine used (Mersenne-Twister in this case)
@@ -153,7 +150,6 @@ std::unique_ptr<CFDRelationData> CFDRelationData::CreateFrom(model::IDatasetStre
         schema->AppendColumn(std::move(column));
         column_data.emplace_back(schema->GetColumn(i), columns_values_dict[i]);
     }
-    schema->Init();
     return std::make_unique<CFDRelationData>(std::move(schema), std::move(column_data),
                                              std::move(data_rows), std::move(item_dictionary),
                                              std::move(items));
@@ -208,7 +204,12 @@ int CFDRelationData::GetAttr(std::string const& s) const {
 }
 
 int CFDRelationData::GetItem(int attr, std::string const& str_value) const {
-    return item_dictionary_.at(std::make_pair(attr, str_value));
+    auto it = item_dictionary_.find(std::make_pair(attr, str_value));
+    if (it != item_dictionary_.end()) {
+        return it->second;
+    } else {
+        return -1;
+    }
 }
 
 void CFDRelationData::Sort() {

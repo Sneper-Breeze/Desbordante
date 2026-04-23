@@ -8,7 +8,7 @@
 
 #include <boost/functional/hash/hash.hpp>
 
-#include "algorithms/dc/model/component.h"
+#include "core/algorithms/dc/model/component.h"
 
 namespace algos::dc {
 
@@ -70,6 +70,7 @@ public:
             std::vector<T> values = p.comps_;
             std::vector<size_t> res(values.size());
             std::transform(values.begin(), values.end(), res.begin(), hasher);
+            res.push_back(p.index_);
 
             return boost::hash_value(res);
         }

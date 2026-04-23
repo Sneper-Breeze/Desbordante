@@ -1,8 +1,7 @@
 #pragma once
 
-#include <enum.h>
-
-#include "algorithms/algorithms.h"
+#include "core/algorithms/algorithms.h"
+#include "core/util/better_enum_with_visibility.h"
 
 namespace algos {
 
@@ -10,11 +9,10 @@ using AlgorithmTypes =
         std::tuple<Depminer, DFD, FastFDs, FDep, FdMine, Pyro, Tane, PFDTane, FUN, hyfd::HyFD, Aid,
                    EulerFD, Apriori, des::DES, metric::MetricVerifier, DataStats,
                    fd_verifier::FDVerifier, HyUCC, PyroUCC, HPIValid, cfd::FDFirstAlgorithm,
-                   ACAlgorithm, UCCVerifier, Faida, Spider, Mind, INDVerifier, Fastod,
-                   GfdValidation, EGfdValidation, NaiveGfdValidation, order::Order, dd::Split,
-                   Cords, hymd::HyMD, PFDVerifier>;
+                   ACAlgorithm, UCCVerifier, Faida, Spider, Mind, INDVerifier, Fastod, GfdValidator,
+                   EGfdValidator, NaiveGfdValidator, order::Order, dd::Split, Cords, hymd::HyMD,
+                   PFDVerifier, cfd_verifier::CFDVerifier, GSpan>;
 
-// clang-format off
 /* Enumeration of all supported non-pipeline algorithms. If you implement a new
  * algorithm please add its corresponding value to this enum and to the type
  * tuple above.
@@ -38,7 +36,7 @@ BETTER_ENUM(AlgorithmType, char,
 
 /* Association rules mining algorithms */
     apriori,
-    
+
 /* Numerical association rules mining algorithms*/
     des,
 
@@ -94,9 +92,14 @@ BETTER_ENUM(AlgorithmType, char,
     hymd,
 
 /* PFD verifier algorithm */
-    pfd_verifier
+    pfd_verifier,
+
+/* CFD verifier algorithm */
+    cfd_verifier,
+    
+/* Frequent subgraph mining algorithms*/
+    gspan
 )
-// clang-format on
 
 static_assert(std::tuple_size_v<AlgorithmTypes> == AlgorithmType::_size(),
               "The AlgorithmTypes tuple and the AlgorithmType enum sizes must be the same. Did you "

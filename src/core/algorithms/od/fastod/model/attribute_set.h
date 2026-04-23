@@ -2,13 +2,15 @@
 
 #include <bitset>
 #include <functional>
+#include <ranges>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 #include <boost/functional/hash.hpp>
 
-#include "model/table/column_index.h"
-#include "model/types/bitset.h"
+#include "core/model/table/column_index.h"
+#include "core/model/types/bitset.h"
 
 namespace algos::fastod {
 
@@ -37,6 +39,22 @@ public:
             throw std::invalid_argument("Maximum possible number of attributes is " +
                                         std::to_string(kBitsNum - 1));
         }
+    }
+
+    std::vector<int> GetColumnIndices() const {
+        std::vector<int> indices;
+        for (model::ColumnIndex i = FindFirst(); i < kBitsNum; i = FindNext(i)) {
+            indices.push_back(static_cast<int>(i));
+        }
+        return indices;
+    }
+
+    static AttributeSet FromVector(std::vector<int> const& indices) {
+        model::Bitset<kBitsNum> bs;
+        for (int idx : indices) {
+            bs._Unchecked_set(static_cast<std::size_t>(idx));
+        }
+        return AttributeSet(std::move(bs));
     }
 
     AttributeSet& operator&=(AttributeSet const& b) noexcept {
@@ -103,6 +121,7 @@ public:
 
     std::string ToString() const;
     void Iterate(std::function<void(model::ColumnIndex)> callback) const;
+    std::vector<model::ColumnIndex> AsVector() const;
 
     friend AttributeSet operator&(AttributeSet const& b1, AttributeSet const& b2) noexcept;
     friend AttributeSet operator|(AttributeSet const& b1, AttributeSet const& b2) noexcept;
@@ -160,11 +179,11 @@ struct boost::hash<algos::fastod::AttributeSet> {
 
 namespace algos::fastod {
 
-inline AttributeSet CreateAttributeSet(std::initializer_list<model::ColumnIndex> attributes,
+inline AttributeSet CreateAttributeSet(std::ranges::input_range auto const& attributes,
                                        model::ColumnIndex size) {
     AttributeSet attr_set(size);
 
-    for (auto const attr : attributes) {
+    for (model::ColumnIndex const attr : attributes) {
         attr_set.Set(attr);
     }
 

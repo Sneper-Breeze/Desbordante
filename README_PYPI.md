@@ -31,149 +31,70 @@ The **Discovery** task is designed to identify all instances of a specified patt
 
 The **Validation** task is different: it is designed to check whether a specified pattern *instance* is present in a given dataset. This task not only returns True or False, but it also explains why the instance does not hold (e.g. it can list table rows with conflicting values).
 
-For some patterns Desbordante supports a **dynamic** task variant. The distiguishing feature of dynamic algorithms compared to classic (static) algorithms is that after a result is obtained, the table can be changed and a dynamic algorithm will update the result based just on those changes instead of processing the whole table again. As a result, they can be up to several orders of magnitude faster than classic (static) ones in some situations.
+For some patterns Desbordante supports a **dynamic** task variant. The distinguishing feature of dynamic algorithms compared to classic (static) algorithms is that after a result is obtained, the table can be changed and a dynamic algorithm will update the result based just on those changes instead of processing the whole table again. As a result, they can be up to several orders of magnitude faster than classic (static) ones in some situations.
 
 The currently supported data patterns are:
-* Exact functional dependencies (discovery and validation)
+* Exact functional dependencies ([discovery](https://colab.research.google.com/github/Desbordante/desbordante-core/blob/main/examples/notebooks/Functional_Dependencies_Mining.ipynb) and [validation](https://colab.research.google.com/github/Desbordante/desbordante-core/blob/main/examples/notebooks/Approximate_and_Exact_Functional_Dependencies_Verification.ipynb))
 * Approximate functional dependencies, with 
-    - $g_1$ metric — classic AFDs (discovery and validation)
-    - $\mu+$ metric (discovery)
-    - $\tau$ metric (discovery)
-    - $pdep$ metric (discovery)
-    - $\rho$ metric (discovery)
+    - $g_1$ metric — classic AFDs ([discovery](https://colab.research.google.com/github/Desbordante/desbordante-core/blob/main/examples/notebooks/Approximate_Functional_Dependencies_Mining.ipynb) and [validation](https://colab.research.google.com/github/Desbordante/desbordante-core/blob/main/examples/notebooks/Approximate_and_Exact_Functional_Dependencies_Verification.ipynb))
+    - $\mu+$ metric ([discovery](https://colab.research.google.com/github/Desbordante/desbordante-core/blob/main/examples/notebooks/Approximate_Functional_Dependencies_Mining.ipynb))
+    - $\tau$ metric ([discovery](https://colab.research.google.com/github/Desbordante/desbordante-core/blob/main/examples/notebooks/Approximate_Functional_Dependencies_Mining.ipynb))
+    - $pdep$ metric ([discovery](https://colab.research.google.com/github/Desbordante/desbordante-core/blob/main/examples/notebooks/Approximate_Functional_Dependencies_Mining.ipynb))
+    - $\rho$ metric ([discovery](https://colab.research.google.com/github/Desbordante/desbordante-core/blob/main/examples/notebooks/Approximate_Functional_Dependencies_Mining.ipynb))
 * Probabilistic functional dependencies, with PerTuple and PerValue metrics (discovery and validation)
-* Classic soft functional dependencies (with corellations), with $\rho$ metric (discovery and validation)
+* Classic soft functional dependencies (with correlations), with $\rho$ metric ([discovery](https://colab.research.google.com/github/Desbordante/desbordante-core/blob/main/examples/notebooks/Soft_Functional_Dependencies_Mining.ipynb) and validation)
 * Dynamic validation of exact and approximate ($g_1$) functional dependencies
 * Numerical dependencies (validation)
-* Graph functional dependencies (validation)
-* Conditional functional dependencies (discovery)
+* Graph functional dependencies (discovery and validation)
+* Conditional functional dependencies (discovery and validation)
 * Inclusion dependencies
-   - Exact inclusion dependencies (discovery and validation)
-   - Approximate inclusion dependencies, with $g^{'}_{3}$ metric (discovery and validation)
+   - Exact inclusion dependencies ([discovery](https://colab.research.google.com/github/Desbordante/desbordante-core/blob/main/examples/notebooks/Inclusion_Dependencies_Mining.ipynb) and [validation](https://colab.research.google.com/github/Desbordante/desbordante-core/blob/main/examples/notebooks/Approximate_and_Exact_Inclusion_Dependencies_Verification.ipynb))
+   - Approximate inclusion dependencies, with $g^{'}_{3}$ metric ([discovery](https://colab.research.google.com/github/Desbordante/desbordante-core/blob/main/examples/notebooks/Approximate_Inclusion_Dependencies%20Mining.ipynb) and [validation](https://colab.research.google.com/github/Desbordante/desbordante-core/blob/main/examples/notebooks/Approximate_and_Exact_Inclusion_Dependencies_Verification.ipynb))
 * Order dependencies:
-   - set-based axiomatization (discovery)
+   - set-based axiomatization (discovery and validation including approximate)
    - list-based axiomatization (discovery)
 * Metric functional dependencies (validation)
-* Fuzzy algebraic constraints (discovery)
-* Differential Dependencies (discovery)
+* Fuzzy algebraic constraints ([discovery](https://colab.research.google.com/github/Desbordante/desbordante-core/blob/main/examples/notebooks/Algebraic_Constraints.ipynb))
+* Differential Dependencies ([discovery](https://colab.research.google.com/github/Desbordante/desbordante-core/blob/main/examples/notebooks/Differential_Dependencies.ipynb) and validation)
 * Unique column combinations:
-   - Exact unique column combination (discovery and validation)
-   - Approximate unique column combination, with $g_1$ metric (discovery and validation)
-* Association rules (discovery)
-* Numerical association rules (discovery)
-* Matching dependencies (discovery)
+   - Exact unique column combination ([discovery](https://colab.research.google.com/github/Desbordante/desbordante-core/blob/main/examples/notebooks/Unique_Column_Combinations_Mining.ipynb) and validation)
+   - Approximate unique column combination, with $g_1$ metric ([discovery](https://colab.research.google.com/github/Desbordante/desbordante-core/blob/main/examples/notebooks/Approximate_Unique_Column_Combinations_Mining.ipynb) and validation)
+* Association rules ([discovery](https://colab.research.google.com/github/Desbordante/desbordante-core/blob/main/examples/notebooks/Association_Rules.ipynb))
+* Numerical association rules ([discovery](https://colab.research.google.com/github/Desbordante/desbordante-core/blob/main/examples/notebooks/Numerical_Association_Rules.ipynb))
+* Matching dependencies ([discovery](https://colab.research.google.com/github/Desbordante/desbordante-core/blob/main/examples/notebooks/Matching_Dependencies.ipynb) and validation)
 * Denial constraints
-   - Exact denial constraints (discovery and validation)
-   - Approximate denial constraints, with $g_1$ metric (discovery)
+   - Exact denial constraints ([discovery](https://colab.research.google.com/github/Desbordante/desbordante-core/blob/main/examples/notebooks/Denial_Constraints.ipynb) and [validation](https://colab.research.google.com/github/Desbordante/desbordante-core/blob/main/examples/notebooks/Denial_Constraints.ipynb))
+   - Approximate denial constraints, with $g_1$ metric ([discovery](https://colab.research.google.com/github/Desbordante/desbordante-core/blob/main/examples/notebooks/Denial_Constraints.ipynb))
 
 This package uses the library of the Desbordante platform, which is written in C++. This means that depending on the algorithm and dataset, the runtimes may be cut by 2-10 times compared to the alternatives.
 
 ## Usage examples
 
-1) Discover all exact functional dependencies in a table stored in a comma-separated file with a header row. In this example the default FD discovery algorithm (HyFD) is used.
+Desbordante features can be accessed from within Python programs by employing the Desbordante Python library. The library is implemented in the form of Python bindings to the interface of the Desbordante C++ core library, using pybind11. Apart from discovery and validation of patterns, this interface is capable of providing valuable additional information which can, for example, describe why a given pattern does not hold. 
 
+We want to demonstrate the power of Desbordante through examples where some patterns are extracted from tabular data, providing non-trivial insights. The patterns are quite complex and require detailed explanations, as well as a significant amount of code. This takes up quite a bit of space. Therefore, we do not include the actual code here; instead, we provide a clear (albeit simplified) definition and a link to a Colab notebook with interactive examples. The examples themselves are very detailed and allow users to understand the pattern and how to extract it using Desbordante.
 
-```python
-import desbordante
+1) Differential Dependencies (DD). DD is a statement of the form X -> Y, where X and Y are sets of attributes. It indicates that for any two rows, $t$ and $s$, if the attributes in $X$ are similar, then the attributes in $Y$ will also be similar. The similarity for each attribute is defined as: $diff(t[X_i], s[X_i]) \in [val_1, val_2]$,
+where $t[X_i]$ is the value of attribute $X_i$ in row $t$, $val$ is a constant, and $diff$ is a function that typically calculates the difference, often through simple subtraction.
+A live Python example that provides insight into the definition and demonstrates how to use this pattern in Desbordante is available [here](https://colab.research.google.com/github/Desbordante/desbordante-core/blob/main/examples/notebooks/Differential_Dependencies.ipynb).
+2) Numeric Association Rules (NAR). NAR is a statement of the form X -> Y, where X and Y are conditions, specified on disjoint sets of attributes. Each condition takes a form of $A_1 \wedge A_2 \wedge \ldots \wedge A_n$, where $A_i$ is either $Attribute_i \in$ $[constant_{i}^{1}; constant_{i}^{2}]$ or $Attribute_i$ = $constant_i^3$. Furthermore, the statement includes the support (sup) and confidence (conf) values, which lie in $[0; 1]$. 
+The rule can be interpreted as follows: 1) the supp share of rows in the dataset satisfies both the X and Y conditions, and 2) the conf share of rows that satisfy the X also satisfies Y.
+A live Python example that provides insight into the definition and demonstrates how to use this pattern in Desbordante is available [here](https://colab.research.google.com/github/Desbordante/desbordante-core/blob/main/examples/notebooks/Numerical_Association_Rules.ipynb).
+3) Matching Dependencies (MD). MD is a statement of the form X -> Y, where X and Y are sets of so-called column matches. Each column match includes: 1) a metric (e.g., Levenshtein distance, Jaccard similarity, etc.), 2) a left column, and 3) a right column. Note that this pattern may involve two tables in its column matches. Finally, each match has its own threshold, which is applied to the corresponding metric and lies in the $[0; 1]$ range. The dependency can be interpreted as follows: any two records that satisfy X will also satisfy Y.
+A live Python example that provides insight into the definition and demonstrates how to use this pattern in Desbordante is available [here](https://colab.research.google.com/github/Desbordante/desbordante-core/blob/main/examples/notebooks/Matching_Dependencies.ipynb).
+4) Denial Constraints (DC). A denial constraint is a statement that says: "For all pairs of rows in a table, it should never happen that some condition is true". Formally, DC $\varphi$ is a conjunction of predicates of the following form: $\forall s,t \in R, s \neq t: \textlnot (p_1 \wedge \ldots \wedge p_m)$. Each $p_k$ has the form $column_i$ $op$ $column_j$, where $op \in {>, <, \leq, \geq, =, \neq}$.
+A live Python example that provides insight into the definition and demonstrates how to use this pattern in Desbordante is available [here](https://colab.research.google.com/github/Desbordante/desbordante-core/blob/main/examples/notebooks/Denial_Constraints.ipynb)
 
-TABLE = 'examples/datasets/university_fd.csv'
+Desbordante offers examples for each supported pattern, sometimes several if the pattern is complex or needs to highlight its unique characteristics compared to others in the same family. We have mentioned only a small portion here, which is available in Colab. The rest can be found in our example [folder](https://github.com/Desbordante/desbordante-core/tree/main/examples).
 
-algo = desbordante.fd.algorithms.Default()
-algo.load_data(table=(TABLE, ',', True))
-algo.execute()
-result = algo.get_fds()
-print('FDs:')
-for fd in result:
-    print(fd)
-```
+Finally, Desbordante allows end users to solve various data quality problems by constructing ad-hoc Python programs, incorporating different Python libraries, and utilizing the search and validation of various patterns. To demonstrate the power of this approach, we have implemented several demo scenarios:
 
-```text
-FDs:
-[Course Classroom] -> Professor
-[Classroom Semester] -> Professor
-[Classroom Semester] -> Course
-[Professor] -> Course
-[Professor Semester] -> Classroom
-[Course Semester] -> Classroom
-[Course Semester] -> Professor
-```
+1) [Typo detection](https://colab.research.google.com/github/Desbordante/desbordante-core/blob/main/examples/notebooks/Desbordante_demo_scenario_1_typo_miner.ipynb)
+2) [Data deduplication](https://colab.research.google.com/github/Desbordante/desbordante-core/blob/main/examples/notebooks/Desbordante_demo_scenario_2_deduplication.ipynb)
+3) [Anomaly detection](https://colab.research.google.com/github/Desbordante/desbordante-core/blob/main/examples/notebooks/Desbordante_demo_scenario_3_anomaly_detection.ipynb)
 
-2) Discover all approximate functional dependencies with error less than or equal to 0.1 in a table represented by a
-   .csv file that uses a comma as the separator and has a header row. In this example the AFD discovery algorithm Pyro
-   is used.
+[There is](https://desbordante.streamlit.app/) also an interactive demo for all of them, and all of these python scripts are [here](https://github.com/Desbordante/desbordante-core/tree/main/examples/expert). The ideas behind them are briefly discussed in this [preprint](https://arxiv.org/abs/2307.14935) (Section 3).
 
-```python
-import desbordante
-
-TABLE = 'examples/datasets/inventory_afd.csv'
-ERROR = 0.1
-
-algo = desbordante.afd.algorithms.Default()
-algo.load_data(table=(TABLE, ',', True))
-algo.execute(error=ERROR)
-result = algo.get_fds()
-print('AFDs:')
-for fd in result:
-    print(fd)
-```
-
-```text
-AFDs:
-[Id] -> Price
-[Id] -> ProductName
-[ProductName] -> Price
-```
-
-3) Check whether metric functional dependency “Title -> Duration” with radius 5 (using the Euclidean metric) holds in a
-   table represented by a .csv file that uses a comma as the separator and has a header row. In this example the default
-   MFD validation algorithm (BRUTE) is used.
-
-```python
-import desbordante
-
-TABLE = 'examples/datasets/theatres_mfd.csv'
-METRIC = 'euclidean'
-LHS_INDICES = [0]
-RHS_INDICES = [2]
-PARAMETER = 5
-
-algo = desbordante.mfd_verification.algorithms.Default()
-algo.load_data(table=(TABLE, ',', True))
-algo.execute(lhs_indices=LHS_INDICES, metric=METRIC,
-             parameter=PARAMETER, rhs_indices=RHS_INDICES)
-if algo.mfd_holds():
-    print('MFD holds')
-else:
-    print('MFD does not hold')
-```
-
-```text
-MFD holds
-```
-
-4) Discover approximate functional dependencies with various error thresholds. Here, we are using a pandas DataFrame to load data from a CSV file.
-
-```python-repl
->>> import desbordante
->>> import pandas as pd
->>> pyro = desbordante.afd.algorithms.Pyro()  # same as desbordante.afd.algorithms.Default()
->>> df = pd.read_csv('examples/datasets/iris.csv', sep=',', header=None)
->>> pyro.load_data(table=df)
->>> pyro.execute(error=0.0)
->>> print(f'[{", ".join(map(str, pyro.get_fds()))}]')
-[[0 1 2] -> 4, [0 2 3] -> 4, [0 1 3] -> 4, [1 2 3] -> 4]
->>> pyro.execute(error=0.1)
->>> print(f'[{", ".join(map(str, pyro.get_fds()))}]')
-[[2] -> 0, [2] -> 3, [2] -> 1, [0] -> 2, [3] -> 0, [0] -> 3, [0] -> 1, [1] -> 3, [1] -> 0, [3] -> 2, [3] -> 1, [1] -> 2, [2] -> 4, [3] -> 4, [0] -> 4, [1] -> 4]
->>> pyro.execute(error=0.2)
->>> print(f'[{", ".join(map(str, pyro.get_fds()))}]')
-[[2] -> 0, [0] -> 2, [3] -> 2, [1] -> 2, [2] -> 4, [3] -> 4, [0] -> 4, [1] -> 4, [3] -> 0, [1] -> 0, [2] -> 3, [2] -> 1, [0] -> 3, [0] -> 1, [1] -> 3, [3] -> 1]
->>> pyro.execute(error=0.3)
->>> print(f'[{", ".join(map(str, pyro.get_fds()))}]')
-[[2] -> 1, [0] -> 2, [2] -> 0, [2] -> 3, [0] -> 1, [3] -> 2, [3] -> 1, [1] -> 2, [3] -> 0, [0] -> 3, [4] -> 1, [1] -> 0, [1] -> 3, [4] -> 2, [4] -> 3, [2] -> 4, [3] -> 4, [0] -> 4, [1] -> 4]
-```
-
-More examples can be found in the [Desbordante repository](https://github.com/Desbordante/desbordante-core/tree/main/examples) on GitHub.
 
 ## I still don't understand how to use Desbordante and patterns :(
 
@@ -204,6 +125,7 @@ Here is a list of papers about patterns, organized in the recommended reading or
    - [Paolo Ciaccia et al. 2013. Efficient derivation of numerical dependencies. Information Systems, Volume 38, Issue 3. Pages 410-429.](https://www.sciencedirect.com/science/article/abs/pii/S0306437912001044)
 * Graph functional dependencies
     - [Wenfei Fan, Yinghui Wu, and Jingbo Xu. 2016. Functional Dependencies for Graphs. In Proceedings of the 2016 International Conference on Management of Data (SIGMOD '16). Association for Computing Machinery, New York, NY, USA, 1843–1857.](https://dl.acm.org/doi/pdf/10.1145/2882903.2915232)
+    - [Wenfei Fan, Chunming Hu, Xueli Liu, and Ping Lu. 2020. Discovering Graph Functional Dependencies. ACM Trans. Database Syst. 45, 3, Article 15 (September 2020), 42 pages.](https://doi.org/10.1145/3397198)
 * Conditional functional dependencies
     - [Rammelaere, J., Geerts, F. (2019). Revisiting Conditional Functional Dependency Discovery: Splitting the “C” from the “FD”. Machine Learning and Knowledge Discovery in Databases. ECML PKDD 2018. ](https://link.springer.com/chapter/10.1007/978-3-030-10928-8_33)
 * Exact and approximate inclusion dependencies
@@ -232,6 +154,7 @@ Here is a list of papers about patterns, organized in the recommended reading or
    - [X. Chu, I. F. Ilyas and P. Papotti. Holistic data cleaning: Putting violations into context. 2013. IEEE 29th International Conference on Data Engineering (ICDE), Brisbane, QLD, Australia, 2013, pp. 458-469,](https://cs.uwaterloo.ca/~ilyas/papers/XuICDE2013.pdf)
    - [Zifan Liu, Shaleen Deep, Anna Fariha, Fotis Psallidas, Ashish Tiwari, and Avrilia Floratou. 2024. Rapidash: Efficient Detection of Constraint Violations. Proc. VLDB Endow. 17, 8 (April 2024), 2009–2021.](https://arxiv.org/pdf/2309.12436)
    - [Renjie Xiao, Zijing Tan, Haojin Wang, and Shuai Ma. 2022. Fast approximate denial constraint discovery. Proc. VLDB Endow. 16, 2 (October 2022), 269–281.](https://doi.org/10.14778/3565816.3565828)
+   - [Meifan Zhang, Hongzhi Wang, Jianzhong Li, and Hong Gao, "One-Pass Inconsistency Detection Algorithms for Big Data," in IEEE Access, vol. 7, pp. 22377-22394, 2019](https://ieeexplore.ieee.org/document/8641478)
 
 ## Installation
 
@@ -250,7 +173,6 @@ Install all dependencies listed in [README.md](https://github.com/Desbordante/de
 Then, in the Desbordante directory (the same one that contains this file), execute:
 
 ```bash
-./build.sh --deps-only
 python3 -m venv .venv
 source .venv/bin/activate
 python3 -m pip install .
@@ -260,21 +182,40 @@ python3 -m pip install .
 ### No type hints in IDE
 If type hints don't work for you in Visual Studio Code, for example, then install stubs using the command:
 ```sh
-pip install desbordate-stubs
+pip install desbordante-stubs
 ```
 **NOTE**: Stubs may not fully support current version of `desbordante` package, as they are updated independently.
 
 ## Cite
 
-If you use this software for research, please cite one of our papers:
+If you use this software for research, please cite our core paper:
 
+```bibtex
+@inproceedings{10.1145/3703323.3703725,
+   author = {Chernishev, George and Polyntsov, Michael and Chizhov, Anton and Stupakov, Kirill and Shchuckin, Ilya and Smirnov, Alexander and Strutovsky, Maxim and Shlyonskikh, Alexey and Firsov, Mikhail and Manannikov, Stepan and Bobrov, Nikita and Goncharov, Daniil and Barutkin, Ilia and Yakshigulov, Vadim and Shalnev, Vladislav and Muraviev, Kirill and Rakhmukova, Anna and Shcheka, Dmitriy and Chernikov, Anton and Kuzin, Yakov and Sinelnikov, Michael and Abrosimov, Grigorii and Popov, Dmitriy and Demchenko, Artem and Belokonny, Sergey and Soloveva, Liana-Iuliia and Kurbatov, Yaroslav and Vyrodov, Mikhail and Saliou, Arthur and Gaisin, Eduard and Smirnov, Kirill},
+   title = {Desbordante: from benchmarking suite to high-performance science-intensive data profiler},
+   year = {2025},
+   isbn = {9798400711244},
+   publisher = {Association for Computing Machinery},
+   address = {New York, NY, USA},
+   url = {https://doi.org/10.1145/3703323.3703725},
+   doi = {10.1145/3703323.3703725},
+   booktitle = {Proceedings of the 8th International Conference on Data Science and Management of Data (12th ACM IKDD CODS and 30th COMAD)},
+   pages = {234--243},
+   numpages = {10},
+   keywords = {Data Mining, Data Profiling, Pattern Extraction, Data Analysis, Knowledge Discovery, Data Exploration, Anomaly Detection, Data Wrangling},
+   location = {},
+   series = {CODS-COMAD '24}
+}
+```
+
+or cite one of our papers, if you use a particular part:
 1) George Chernishev, et al. Solving Data Quality Problems with Desbordante: a Demo. CoRR abs/2307.14935 (2023).
-2) George Chernishev, et al. "Desbordante: from benchmarking suite to high-performance science-intensive data profiler (preprint)". CoRR abs/2301.05965. (2023).
-3) M. Strutovskiy, N. Bobrov, K. Smirnov and G. Chernishev, "Desbordante: a Framework for Exploring Limits of Dependency Discovery Algorithms," 2021 29th Conference of Open Innovations Association (FRUCT), 2021, pp. 344-354, doi: 10.23919/FRUCT52173.2021.9435469.
-4) A. Smirnov, A. Chizhov, I. Shchuckin, N. Bobrov and G. Chernishev, "Fast Discovery of Inclusion Dependencies with Desbordante," 2023 33rd Conference of Open Innovations Association (FRUCT), Zilina, Slovakia, 2023, pp. 264-275, doi: 10.23919/FRUCT58615.2023.10143047.
-5) Y. Kuzin, D. Shcheka, M. Polyntsov, K. Stupakov, M. Firsov and G. Chernishev, "Order in Desbordante: Techniques for Efficient Implementation of Order Dependency Discovery Algorithms," 2024 35th Conference of Open Innovations Association (FRUCT), Tampere, Finland, 2024, pp. 413-424.
-6) I. Barutkin, M. Fofanov, S. Belokonny, V. Makeev and G. Chernishev, "Extending Desbordante with Probabilistic Functional Dependency Discovery Support," 2024 35th Conference of Open Innovations Association (FRUCT), Tampere, Finland, 2024, pp. 158-169.
-7) A. Shlyonskikh, M. Sinelnikov, D. Nikolaev, Y. Litvinov and G. Chernishev, "Lightning Fast Matching Dependency Discovery with Desbordante," 2024 36th Conference of Open Innovations Association (FRUCT), Lappeenranta, Finland, 2024, pp. 729-740.
+2) M. Strutovskiy, N. Bobrov, K. Smirnov and G. Chernishev, "Desbordante: a Framework for Exploring Limits of Dependency Discovery Algorithms," 2021 29th Conference of Open Innovations Association (FRUCT), 2021, pp. 344-354, doi: 10.23919/FRUCT52173.2021.9435469.
+3) A. Smirnov, A. Chizhov, I. Shchuckin, N. Bobrov and G. Chernishev, "Fast Discovery of Inclusion Dependencies with Desbordante," 2023 33rd Conference of Open Innovations Association (FRUCT), Zilina, Slovakia, 2023, pp. 264-275, doi: 10.23919/FRUCT58615.2023.10143047.
+4) Y. Kuzin, D. Shcheka, M. Polyntsov, K. Stupakov, M. Firsov and G. Chernishev, "Order in Desbordante: Techniques for Efficient Implementation of Order Dependency Discovery Algorithms," 2024 35th Conference of Open Innovations Association (FRUCT), Tampere, Finland, 2024, pp. 413-424.
+5) I. Barutkin, M. Fofanov, S. Belokonny, V. Makeev and G. Chernishev, "Extending Desbordante with Probabilistic Functional Dependency Discovery Support," 2024 35th Conference of Open Innovations Association (FRUCT), Tampere, Finland, 2024, pp. 158-169.
+6) A. Shlyonskikh, M. Sinelnikov, D. Nikolaev, Y. Litvinov and G. Chernishev, "Lightning Fast Matching Dependency Discovery with Desbordante," 2024 36th Conference of Open Innovations Association (FRUCT), Lappeenranta, Finland, 2024, pp. 729-740.
 
 
 # Contacts and Q&A

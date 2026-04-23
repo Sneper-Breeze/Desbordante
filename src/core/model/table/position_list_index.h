@@ -9,7 +9,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "model/table/column.h"
+#include "core/model/table/column.h"
 
 class ColumnLayoutRelationData;
 
@@ -20,18 +20,10 @@ public:
     /* Vector of tuple indices */
     using Cluster = std::vector<int>;
 
-private:
+protected:
     std::deque<Cluster> index_;
-    Cluster null_cluster_;
-    unsigned int size_;
-    double entropy_;
-    double inverted_entropy_;
-    double gini_impurity_;
-    unsigned long long nep_;
     unsigned int relation_size_;
-    unsigned int original_relation_size_;
-    std::shared_ptr<std::vector<int> const> probing_table_cache_;
-    unsigned int freq_ = 0;
+    unsigned int size_;
 
     static unsigned long long CalculateNep(unsigned int num_elements) {
         return static_cast<unsigned long long>(num_elements) * (num_elements - 1) / 2;
@@ -41,17 +33,24 @@ private:
     static bool TakeProbe(int position, ColumnLayoutRelationData& relation_data,
                           Vertical const& probing_columns, std::vector<int>& probe);
 
+private:
+    double entropy_;
+    double inverted_entropy_;
+    double gini_impurity_;
+    unsigned long long nep_;
+    std::shared_ptr<std::vector<int> const> probing_table_cache_;
+    unsigned int freq_ = 0;
+
 public:
     static int intersection_count_;
     static unsigned long long micros_;
     static int const kSingletonValueId;
 
-    PositionListIndex(std::deque<Cluster> index, Cluster null_cluster, unsigned int size,
-                      double entropy, unsigned long long nep, unsigned int relation_size,
-                      unsigned int original_relation_size, double inverted_entropy = 0,
-                      double gini_impurity = 0);
-    static std::unique_ptr<PositionListIndex> CreateFor(std::vector<int>& data,
-                                                        bool is_null_eq_null);
+    PositionListIndex(std::deque<Cluster> index, unsigned int size, double entropy,
+                      unsigned long long nep, unsigned int relation_size,
+                      double inverted_entropy = 0, double gini_impurity = 0);
+
+    static std::unique_ptr<PositionListIndex> CreateFor(std::vector<int>& data);
 
     static std::unordered_map<int, unsigned> CreateFrequencies(
             Cluster const& cluster, std::vector<int> const& probing_table);
@@ -98,7 +97,7 @@ public:
     }
 
     unsigned int GetNumCluster() const {
-        return index_.size() + original_relation_size_ - size_;
+        return index_.size() + relation_size_ - size_;
     }
 
     unsigned int GetFreq() const {

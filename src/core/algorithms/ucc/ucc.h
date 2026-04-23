@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "model/table/vertical.h"
+#include "core/model/table/vertical.h"
 
 namespace model {
 
@@ -22,6 +22,10 @@ public:
         : Vertical(std::move(ucc_val)), schema_(std::move(schema)) {}
 
     UCC() = default;
+
+    std::shared_ptr<RelationalSchema const> GetSchema() const {
+        return schema_;
+    }
 };
 
 }  // namespace model

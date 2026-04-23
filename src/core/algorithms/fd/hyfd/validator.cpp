@@ -1,4 +1,4 @@
-#include "validator.h"
+#include "core/algorithms/fd/hyfd/validator.h"
 
 #include <algorithm>
 #include <future>
@@ -8,11 +8,10 @@
 #include <boost/asio/post.hpp>
 #include <boost/asio/thread_pool.hpp>
 #include <boost/dynamic_bitset.hpp>
-#include <easylogging++.h>
 
-#include "algorithms/fd/hycommon/util/pli_util.h"
-#include "algorithms/fd/hycommon/validator_helpers.h"
-#include "hyfd_config.h"
+#include "core/algorithms/fd/hycommon/util/pli_util.h"
+#include "core/algorithms/fd/hycommon/validator_helpers.h"
+#include "core/algorithms/fd/hyfd/hyfd_config.h"
 
 namespace {
 
@@ -218,8 +217,8 @@ Validator::FDValidations Validator::ProcessHigherLevel(LhsPair const& lhs_pair) 
                                                       *compressed_records_, lhs, rhs, first_attr);
     lhs.set(first_attr);
 
-    rhs &= ~valid_rhss;
-    vertex->SetFds(valid_rhss);
+    rhs -= valid_rhss;
+    vertex->SetFds(std::move(valid_rhss));
 
     for (size_t attr = rhs.find_first(); attr != boost::dynamic_bitset<>::npos;
          attr = rhs.find_next(attr)) {

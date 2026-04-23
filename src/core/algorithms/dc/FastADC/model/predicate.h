@@ -8,10 +8,10 @@
 
 #include <boost/container_hash/hash.hpp>
 
-#include "dc/FastADC/model/column_operand.h"
-#include "dc/FastADC/model/operator.h"
-#include "model/types/bitset.h"
-#include "table/typed_column_data.h"
+#include "core/algorithms/dc/FastADC/model/column_operand.h"
+#include "core/algorithms/dc/FastADC/model/operator.h"
+#include "core/model/table/typed_column_data.h"
+#include "core/model/types/bitset.h"
 
 namespace algos::fastadc {
 
@@ -27,7 +27,7 @@ class PredicateProvider;
  * TODO: Java code uses LongBitSet, which is like boost::dynamic_bitset, but
  * restructs number of bits in the clue to kPredicateBits. Need to investigate further whether
  * the Java's algorithm could work with predicate space more than kPredicateBits.
- * But for now we use kPredicateBits as maxumum amount of predicates
+ * But for now we use kPredicateBits as maximum amount of predicates
  */
 constexpr auto kPredicateBits = 128;
 using PredicateBitset = model::Bitset<kPredicateBits>;

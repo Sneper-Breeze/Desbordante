@@ -1,26 +1,33 @@
+#include <pybind11/pybind11.h>
+
 #include <functional>
+#include <sstream>
+#include <stdexcept>
 #include <unordered_map>
 
 #include <boost/any.hpp>
-#include <easylogging++.h>
-#include <pybind11/pybind11.h>
+#include <boost/core/demangle.hpp>
 #include <pybind11/stl.h>
 #include <pybind11/stl/filesystem.h>
 
-#include "algorithms/algebraic_constraints/bin_operation_enum.h"
-#include "algorithms/cfd/enums.h"
-#include "algorithms/md/hymd/enums.h"
-#include "algorithms/md/hymd/hymd.h"
-#include "algorithms/metric/enums.h"
-#include "association_rules/ar_algorithm_enums.h"
-#include "config/custom_random_seed/type.h"
-#include "config/error_measure/type.h"
-#include "config/exceptions.h"
-#include "config/tabular_data/input_table_type.h"
-#include "config/tabular_data/input_tables_type.h"
-#include "parser/csv_parser/csv_parser.h"
-#include "py_util/create_dataframe_reader.h"
-#include "util/enum_to_available_values.h"
+#include "core/algorithms/algebraic_constraints/bin_operation_enum.h"
+#include "core/algorithms/association_rules/ar_algorithm_enums.h"
+#include "core/algorithms/cfd/enums.h"
+#include "core/algorithms/dd/dd.h"
+#include "core/algorithms/fd/afd_metric/afd_metric.h"
+#include "core/algorithms/md/hymd/enums.h"
+#include "core/algorithms/md/hymd/hymd.h"
+#include "core/algorithms/md/md_verifier/column_similarity_classifier.h"
+#include "core/algorithms/metric/enums.h"
+#include "core/algorithms/od/fastod/od_ordering.h"
+#include "core/config/custom_random_seed/type.h"
+#include "core/config/error_measure/type.h"
+#include "core/config/exceptions.h"
+#include "core/config/tabular_data/input_table_type.h"
+#include "core/config/tabular_data/input_tables_type.h"
+#include "core/parser/csv_parser/csv_parser.h"
+#include "core/util/enum_to_available_values.h"
+#include "python_bindings/py_util/create_dataframe_reader.h"
 
 namespace {
 
@@ -123,28 +130,41 @@ std::unordered_map<std::type_index, ConvFunc> const kConverters{
         kNormalConvPair<size_t>,
         kNormalConvPair<algos::hymd::HyMD::ColumnMatches>,
         kNormalConvPair<std::optional<int>>,
+        kNormalConvPair<algos::md::ColumnSimilarityClassifier>,
+        kNormalConvPair<std::vector<algos::md::ColumnSimilarityClassifier>>,
         kEnumConvPair<algos::metric::Metric>,
         kEnumConvPair<algos::metric::MetricAlgo>,
         kEnumConvPair<config::PfdErrorMeasureType>,
         kEnumConvPair<config::AfdErrorMeasureType>,
+        kEnumConvPair<algos::afd_metric_calculator::AFDMetric>,
         kEnumConvPair<algos::InputFormat>,
         kEnumConvPair<algos::cfd::Substrategy>,
         kEnumConvPair<algos::hymd::LevelDefinition>,
+        kEnumConvPair<algos::od::Ordering>,
         kCharEnumConvPair<algos::Binop>,
         {typeid(config::InputTable), InputTableToAny},
         {typeid(config::InputTables), InputTablesToAny},
         kNormalConvPair<std::filesystem::path>,
         kNormalConvPair<std::vector<std::filesystem::path>>,
         kNormalConvPair<std::unordered_set<size_t>>,
+        kNormalConvPair<model::DDString>,
         kNormalConvPair<std::string>,
-};
+        kNormalConvPair<std::vector<std::pair<std::string, std::string>>>,
+        kNormalConvPair<std::pair<std::string, std::string>>};
 
 }  // namespace
 
 namespace python_bindings {
 
 boost::any PyToAny(std::string_view option_name, std::type_index index, py::handle obj) {
-    return kConverters.at(index)(option_name, obj);
+    auto const it = kConverters.find(index);
+    if (it == kConverters.end()) [[unlikely]] {
+        std::ostringstream oss;
+        oss << "Cannot get type for option " << option_name << ": "
+            << boost::core::demangle(index.name()) << " (PyToAny)";
+        throw std::runtime_error(oss.str());
+    }
+    return it->second(option_name, obj);
 }
 
 }  // namespace python_bindings

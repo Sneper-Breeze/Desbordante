@@ -4,17 +4,17 @@
 #include <memory>
 #include <unordered_map>
 
-#include "big_int_type.h"
-#include "create_type.h"
-#include "date_type.h"
-#include "double_type.h"
-#include "empty_type.h"
-#include "int_type.h"
-#include "null_type.h"
-#include "numeric_type.h"
-#include "string_type.h"
-#include "type.h"
-#include "undefined_type.h"
+#include "core/model/types/big_int_type.h"
+#include "core/model/types/create_type.h"
+#include "core/model/types/date_type.h"
+#include "core/model/types/double_type.h"
+#include "core/model/types/empty_type.h"
+#include "core/model/types/int_type.h"
+#include "core/model/types/null_type.h"
+#include "core/model/types/numeric_type.h"
+#include "core/model/types/string_type.h"
+#include "core/model/types/type.h"
+#include "core/model/types/undefined_type.h"
 
 namespace model {
 
@@ -86,7 +86,7 @@ public:
         throw std::logic_error("Mixed type does not have a fixed size");
     }
 
-    // It's correct, but not optimal, need to be rewrited later with other virtual
+    // It's correct, but not optimal, need to be rewritten later with other virtual
     // Clone(std::byte const* value, std::byte const* new_value)
     [[nodiscard]] std::byte* Clone(std::byte const* value) const override {
         std::unique_ptr<Type> type = RetrieveType(value);

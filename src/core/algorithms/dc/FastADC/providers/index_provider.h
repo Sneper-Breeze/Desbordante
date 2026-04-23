@@ -8,7 +8,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "dc/FastADC/model/predicate.h"
+#include "core/algorithms/dc/FastADC/model/predicate.h"
 
 namespace algos::fastadc {
 
@@ -37,6 +37,10 @@ public:
     void AddAll(std::vector<T> const& objects);
 
     T GetObject(size_t index) const;
+
+    std::vector<T> const& GetObjects() const noexcept {
+        return objects_;
+    }
 
     size_t Size() const;
 

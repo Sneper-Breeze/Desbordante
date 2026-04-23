@@ -4,12 +4,12 @@
 #include <string_view>
 #include <vector>
 
-#include "algorithms/algorithm.h"
-#include "error/type.h"
-#include "ind.h"
-#include "model/table/relational_schema.h"
-#include "tabular_data/input_tables_type.h"
-#include "util/primitive_collection.h"
+#include "core/algorithms/algorithm.h"
+#include "core/algorithms/ind/ind.h"
+#include "core/config/error/type.h"
+#include "core/config/tabular_data/input_tables_type.h"
+#include "core/model/table/relational_schema.h"
+#include "core/util/primitive_collection.h"
 
 namespace algos {
 
@@ -19,7 +19,7 @@ public:
 
 private:
     util::PrimitiveCollection<IND> ind_collection_;
-    std::shared_ptr<std::vector<RelationalSchema>> schemas_;
+    std::shared_ptr<std::vector<std::unique_ptr<RelationalSchema>>> schemas_;
 
     void LoadDataInternal() final;
 
@@ -33,11 +33,9 @@ private:
     virtual void ResetINDAlgorithmState() = 0;
 
 protected:
-    constexpr static std::string_view kDefaultPhaseName = "IND mining";
-
     config::InputTables input_tables_;
 
-    explicit INDAlgorithm(std::vector<std::string_view> phase_names);
+    explicit INDAlgorithm();
 
     virtual void RegisterIND(std::shared_ptr<model::ColumnCombination> lhs,
                              std::shared_ptr<model::ColumnCombination> rhs,

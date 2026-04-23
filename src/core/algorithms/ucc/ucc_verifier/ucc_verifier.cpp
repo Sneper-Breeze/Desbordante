@@ -1,20 +1,20 @@
-#include "ucc_verifier.h"
+#include "core/algorithms/ucc/ucc_verifier/ucc_verifier.h"
 
 #include <chrono>
 #include <numeric>
 #include <stdexcept>
 
-#include "config/equal_nulls/option.h"
-#include "config/indices/option.h"
-#include "config/names_and_descriptions.h"
-#include "config/option_using.h"
-#include "config/tabular_data/input_table/option.h"
+#include "core/config/equal_nulls/option.h"
+#include "core/config/indices/option.h"
+#include "core/config/names_and_descriptions.h"
+#include "core/config/option_using.h"
+#include "core/config/tabular_data/input_table/option.h"
 
 namespace algos {
 
-UCCVerifier::UCCVerifier() : Algorithm({}) {
+UCCVerifier::UCCVerifier() : Algorithm() {
     RegisterOptions();
-    MakeOptionsAvailable({config::kTableOpt.GetName(), config::kEqualNullsOpt.GetName()});
+    MakeOptionsAvailable({config::kTableOpt.GetName()});
 }
 
 void UCCVerifier::RegisterOptions() {
@@ -26,7 +26,6 @@ void UCCVerifier::RegisterOptions() {
         return indices;
     };
     RegisterOption(config::kTableOpt(&input_table_));
-    RegisterOption(config::kEqualNullsOpt(&is_null_equal_null_));
     RegisterOption(config::IndicesOption{
             kUCCIndices, kDUCCIndices, config::IndicesOption::NormalizeIndices,
             std::move(calculate_default)}(&column_indices_, std::move(get_schema_cols)));
@@ -38,7 +37,7 @@ void UCCVerifier::MakeExecuteOptsAvailable() {
 }
 
 void UCCVerifier::LoadDataInternal() {
-    relation_ = ColumnLayoutRelationData::CreateFrom(*input_table_, is_null_equal_null_);
+    relation_ = ColumnLayoutRelationData::CreateFrom(*input_table_);
 
     if (relation_->GetColumnData().empty()) {
         throw std::runtime_error("Got an empty dataset: UCC verifying is meaningless.");

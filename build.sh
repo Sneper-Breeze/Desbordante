@@ -11,10 +11,9 @@ Usage: ./build.sh [options]
 
 Possible options:
   -h,         --help                  Display help
-              --deps-only             Install dependencies only (don't build)
   -p,         --pybind                Compile python bindings
   -n,         --no-tests              Don't build tests
-  -u,         --no-unpack             Don't unpack datasets
+  -b          --benchmark             Build benchmarks
   -j[N],      --parallel[N]           The maximum number of concurrent processes for building
   -d,         --debug                 Set debug build type
   -s[S],      --sanitizer[=S]         Build with sanitizer S (has effect only for debug build).
@@ -23,16 +22,16 @@ Possible options:
                                       UB      - Undefined Behavior Sanitizer
   -l                                  Use Link Time Optimization
   -g                                  Use GDB's debug information format
+  -f,         --no-fetch-datasets     Don't fetch datasets for tests or benchmarks
+  -L[LEVEL]   --log-level[=LEVEL]     Set log level (TRACE, DEBUG, INFO, WARN, ERROR, CRITICAL)
+  -C[OPT]     --cmake-opt[=OPT]       Forward OPT to CMake
+  -B[OPT]     --build-opt[=OPT]       Forward OPT to build system
 EOF
 }
 
 # TODO: use getopts or something else instead of bash
 for i in "$@"; do
     case $i in
-        # Install dependencies only (don't build)
-        --deps-only)
-            DEPS_ONLY=true
-            ;;
         # Compile python bindings
         -p | --pybind)
             PYBIND=true
@@ -41,13 +40,13 @@ for i in "$@"; do
         -n | --no-tests)
             NO_TESTS=true
             ;;
-        # Don't unpack datasets
-        -u | --no-unpack)
-            NO_UNPACK=true
+            # Build benchmarks
+        -b | --benchmark)
+            BENCHMARK=true
             ;;
         # The maximum number of concurrent processes for building
         -j* | --parallel*)
-            JOBS_OPTION=$i
+            BUILD_OPTS="$BUILD_OPTS $i"
             ;;
         # Set debug build type
         -d | --debug)
@@ -69,6 +68,34 @@ for i in "$@"; do
         -g)
             GDB_DEBUG=true
             ;;
+        # Don't fetch datasets for tests or benchmarks
+        -f | --no-fetch-datasets)
+            NO_FETCH_DATASETS=true
+            ;;
+        # Set log level, long option
+        --log-level=*)
+            LOG_LEVEL="${i#*=}"
+            ;;
+        # Set log level, short option
+        -L*)
+            LOG_LEVEL="${i#*L}"
+            ;;
+        # Forward option to CMake, long option
+        --cmake-opt=*)
+            CMAKE_OPTS="$CMAKE_OPTS ${i#*=}"
+            ;;
+        # Forward option to CMake, short option
+        -C*)
+            CMAKE_OPTS="$CMAKE_OPTS ${i#*C}"
+            ;;
+        # Forward option to build system, long option
+        --build-opt=*)
+            BUILD_OPTS="$BUILD_OPTS ${i#*=}"
+            ;;
+        # Forward option to build system, short option
+        -B*)
+            BUILD_OPTS="$BUILD_OPTS ${i#*B}"
+            ;;
         # Display help
         -h | --help | *)
             print_help
@@ -77,64 +104,43 @@ for i in "$@"; do
     esac
 done
 
-mkdir -p lib
-cd lib
-
-if [[ ! -d "easyloggingpp" ]]; then
-    git clone https://github.com/amrayn/easyloggingpp/ --branch v9.97.0 --depth 1
-fi
-if [[ ! -d "better-enums" ]]; then
-    git clone https://github.com/aantron/better-enums.git --branch 0.11.3 --depth 1
-fi
-if [[ ! -d "pybind11" ]]; then
-    git clone https://github.com/pybind/pybind11.git --branch v2.13.4 --depth 1
-fi
-if [[ ! -d "emhash" ]]; then
-    git clone https://github.com/ktprime/emhash.git --depth 1
-fi
-if [[ ! -d "atomicbitvector" ]]; then
-    git clone https://github.com/ekg/atomicbitvector.git --depth 1
-fi
-if [[ ! -d "frozen" ]]; then
-    git clone https://github.com/serge-sans-paille/frozen.git --depth 1
-fi
+CMAKE_OPTS="$CMAKE_OPTS -G Ninja"
 
 if [[ $NO_TESTS == true ]]; then
-    PREFIX="$PREFIX -D COMPILE_TESTS=OFF"
-else
-    if [[ ! -d "googletest" ]]; then
-        git clone https://github.com/google/googletest/ --branch v1.14.0 --depth 1
-    fi
+    CMAKE_OPTS="$CMAKE_OPTS -D DESBORDANTE_BUILD_TESTS=OFF"
 fi
 
-if [[ $DEPS_ONLY == true ]]; then
-    exit 0
-fi
-
-if [[ $NO_UNPACK == true ]]; then
-    PREFIX="$PREFIX -D UNPACK_DATASETS=OFF"
+if [[ $BENCHMARK == true ]]; then
+    CMAKE_OPTS="$CMAKE_OPTS -D DESBORDANTE_BUILD_BENCHMARKS=ON"
 fi
 
 if [[ $PYBIND == true ]]; then
-    PREFIX="$PREFIX -D PYTHON=COMPILE -D COPY_PYTHON_EXAMPLES=ON"
+    CMAKE_OPTS="$CMAKE_OPTS -D DESBORDANTE_BINDINGS=BUILD"
 fi
 
 if [[ $LTO == true ]]; then
-    PREFIX="$PREFIX -D USE_LTO=ON"
+    CMAKE_OPTS="$CMAKE_OPTS -D DESBORDANTE_USE_LTO=ON"
 fi
 
 if [[ $GDB_DEBUG == true ]]; then
-    PREFIX="$PREFIX -D GDB_DEBUG=ON"
+    CMAKE_OPTS="$CMAKE_OPTS -D DESBORDANTE_GDB_SYMBOLS=ON"
+fi
+
+if [[ $NO_FETCH_DATASETS == true ]]; then
+    CMAKE_OPTS="$CMAKE_OPTS -D DESBORDANTE_FETCH_DATASETS=OFF"
 fi
 
 if [[ $DEBUG_MODE != true ]]; then
-    PREFIX="$PREFIX -D CMAKE_BUILD_TYPE=Release"
+    CMAKE_OPTS="$CMAKE_OPTS -D CMAKE_BUILD_TYPE=Release"
 fi
 
 if [[ -n $SANITIZER ]]; then
-    PREFIX="$PREFIX -D SANITIZER=${SANITIZER}"
+    CMAKE_OPTS="$CMAKE_OPTS -D DESBORDANTE_SANITIZER=${SANITIZER}"
 fi
 
-cd ..
+if [[ -n $LOG_LEVEL ]]; then
+    CMAKE_OPTS="$CMAKE_OPTS -D DESBORDANTE_LOG_LEVEL=${LOG_LEVEL}"
+fi
+
 rm -f build/CMakeCache.txt
-cmake -S . -B build $PREFIX -G Ninja && cmake --build build $JOBS_OPTION
+cmake -S . -B build $CMAKE_OPTS && cmake --build build $BUILD_OPTS

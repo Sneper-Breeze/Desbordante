@@ -1,7 +1,7 @@
 name: Wheel
 on:
   pull_request:
-    types: [ opened, synchronize, reopened ]
+    types: [ opened, synchronize, reopened, labeled, unlabeled ]
     paths-ignore:
       - docs/**
       - README.md
@@ -12,7 +12,6 @@ on:
       - .gitignore
       - COPYING
       - build.*
-      - pull_datasets.sh
   push:
     branches:
       - main
@@ -26,7 +25,8 @@ on:
       - .gitignore
       - COPYING
       - build.*
-      - pull_datasets.sh
+  schedule:
+    - cron: "0 3 * * 1" 
   workflow_dispatch:
   release:
     types:
@@ -39,14 +39,15 @@ concurrency:
 
 jobs:
   generate-linux-wheels-matrix:
+    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'python-packaging-risk')
     name: Generate Linux wheel matrix
     runs-on: ubuntu-latest
     outputs:
       include: ${{ steps.set-matrix.outputs.include }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Install cibuildwheel
-        run: pipx install cibuildwheel==2.22.0
+        run: pipx install cibuildwheel==3.2.1
       - id: set-matrix
         run: |
           MATRIX=$(
@@ -62,20 +63,20 @@ jobs:
     env:
       CIBW_ARCHS_LINUX: x86_64
       CIBW_BUILD: "*manylinux*"
-      CIBW_SKIP: "cp37-*"
       CIBW_TEST_REQUIRES: pytest
       CIBW_BUILD_VERBOSITY: 1
       CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
 
   generate-macos-wheels-matrix:
+    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'python-packaging-risk')
     name: Generate macOS wheel matrix
     runs-on: macos-latest
     outputs:
       include: ${{ steps.set-matrix.outputs.include }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Install cibuildwheel
-        run: pipx install cibuildwheel==2.22.0
+        run: pipx install cibuildwheel==3.2.1
       - id: set-matrix
         run: |
           MATRIX=$(
@@ -83,7 +84,7 @@ jobs:
             | jq -sR 'split("\n") | map(select(length > 0)) | map(
               {
                 "only": ., 
-                "os": (if contains("x86_64") then "macos-13" else "macos-latest" end), 
+                "os": (if contains("x86_64") then "macos-15-intel" else "macos-latest" end), 
                 "toolset": "apple-clang",
               })' \
             | jq -c
@@ -95,8 +96,6 @@ jobs:
     env:
       CIBW_ARCHS_MACOS: arm64 x86_64
       CIBW_BUILD: "*macos*"
-      # https://github.com/pypa/cibuildwheel/issues/2126
-      CIBW_SKIP: "cp37-*"
       CIBW_TEST_REQUIRES: pytest
       CIBW_BUILD_VERBOSITY: 1
 
@@ -127,19 +126,19 @@ jobs:
         include: ${{ fromJson(needs.merge-matrices.outputs.include) }}
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install dependencies
         uses: ./.github/composite-actions/install-dependencies
         with:
           os: ${{ matrix.os }}
           toolset: ${{ matrix.toolset }}
-          install-boost: false
+          boost-libraries: ''
           download-googletest: false
           download-pybind: true
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.22.0
+        uses: pypa/cibuildwheel@v3.2.1
         with:
           only: ${{ matrix.only }}
         env:
@@ -168,7 +167,7 @@ jobs:
             python3 {project}/src/python_bindings/test_bindings.py
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: artifact-${{ matrix.only }}
           if-no-files-found: ignore
@@ -179,9 +178,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-wheels
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Download all artifacts from previous step
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: wheel-artifacts
 
@@ -196,7 +195,7 @@ jobs:
         run: find wheel-artifacts -mindepth 2 -type f -exec mv -i '{}' wheelhouse ';'
 
       - name: Upload a single artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: wheels
           path: wheelhouse/*.whl
@@ -213,9 +212,9 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'release' && github.event.action == 'published'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Download wheels
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: wheels
           path: dist

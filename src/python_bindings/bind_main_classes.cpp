@@ -1,20 +1,21 @@
-#include "bind_main_classes.h"
+#include "python_bindings/bind_main_classes.h"
+
+#include <pybind11/pybind11.h>
 
 #include <typeindex>
 #include <typeinfo>
 
-#include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-#include "algorithms/algo_factory.h"
-#include "algorithms/algorithm.h"
-#include "config/exceptions.h"
-#include "config/names.h"
-#include "py_util/get_py_type.h"
-#include "py_util/opt_to_py.h"
-#include "py_util/py_to_any.h"
+#include "core/algorithms/algo_factory.h"
+#include "core/algorithms/algorithm.h"
+#include "core/config/exceptions.h"
+#include "core/config/names.h"
+#include "python_bindings/py_util/get_py_type.h"
+#include "python_bindings/py_util/opt_to_py.h"
+#include "python_bindings/py_util/py_to_any.h"
 
-namespace {
+namespace configure_algorithm {
 namespace py = pybind11;
 using algos::Algorithm;
 auto const kVoidIndex = std::type_index{typeid(void)};
@@ -30,7 +31,9 @@ void ConfigureAlgo(Algorithm& algorithm, py::kwargs const& kwargs) {
                                : boost::any{};
             });
 }
-}  // namespace
+}  // namespace configure_algorithm
+
+using namespace configure_algorithm;
 
 namespace python_bindings {
 void BindMainClasses(py::module_& main_module) {

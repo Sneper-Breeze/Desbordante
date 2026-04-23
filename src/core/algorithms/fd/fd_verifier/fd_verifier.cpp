@@ -1,19 +1,18 @@
-#include "algorithms/fd/fd_verifier/fd_verifier.h"
+#include "core/algorithms/fd/fd_verifier/fd_verifier.h"
 
 #include <chrono>
 #include <memory>
 #include <stdexcept>
 
-#include "config/equal_nulls/option.h"
-#include "config/indices/option.h"
-#include "config/indices/validate_index.h"
-#include "config/names_and_descriptions.h"
-#include "config/option_using.h"
-#include "config/tabular_data/input_table/option.h"
+#include "core/config/equal_nulls/option.h"
+#include "core/config/indices/option.h"
+#include "core/config/names_and_descriptions.h"
+#include "core/config/option_using.h"
+#include "core/config/tabular_data/input_table/option.h"
 
 namespace algos::fd_verifier {
 
-FDVerifier::FDVerifier() : Algorithm({}) {
+FDVerifier::FDVerifier() : Algorithm() {
     RegisterOptions();
     MakeOptionsAvailable({config::kTableOpt.GetName(), config::kEqualNullsOpt.GetName()});
 }
@@ -36,7 +35,7 @@ void FDVerifier::MakeExecuteOptsAvailable() {
 }
 
 void FDVerifier::LoadDataInternal() {
-    relation_ = ColumnLayoutRelationData::CreateFrom(*input_table_, is_null_equal_null_);
+    relation_ = ColumnLayoutRelationData::CreateFrom(*input_table_);
     input_table_->Reset();
     if (relation_->GetColumnData().empty()) {
         throw std::runtime_error("Got an empty dataset: FD verifying is meaningless.");
@@ -61,8 +60,8 @@ unsigned long long FDVerifier::ExecuteInternal() {
 }
 
 void FDVerifier::VerifyFD() const {
-    std::shared_ptr<model::PLI const> lhs_pli = CalculatePLI(lhs_indices_);
-    std::shared_ptr<model::PLI const> rhs_pli = CalculatePLI(rhs_indices_);
+    std::shared_ptr<model::PLI const> lhs_pli = relation_->CalculatePLI(lhs_indices_);
+    std::shared_ptr<model::PLI const> rhs_pli = relation_->CalculatePLI(rhs_indices_);
 
     std::unique_ptr<model::PLI const> intersection_pli = lhs_pli->Intersect(rhs_pli.get());
     if (lhs_pli->GetNumCluster() == intersection_pli->GetNumCluster()) {
@@ -70,16 +69,6 @@ void FDVerifier::VerifyFD() const {
     }
 
     stats_calculator_->CalculateStatistics(lhs_pli.get(), rhs_pli.get());
-}
-
-std::shared_ptr<model::PLI const> FDVerifier::CalculatePLI(
-        config::IndicesType const& indices) const {
-    std::shared_ptr<model::PLI const> pli = relation_->GetColumnData(indices[0]).GetPliOwnership();
-
-    for (size_t i = 1; i < indices.size(); ++i) {
-        pli = pli->Intersect(relation_->GetColumnData(indices[i]).GetPositionListIndex());
-    }
-    return pli;
 }
 
 void FDVerifier::SortHighlightsByProportionAscending() const {

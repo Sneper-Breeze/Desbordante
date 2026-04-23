@@ -6,10 +6,10 @@
 
 #include <boost/any.hpp>
 
-#include "algorithms/algorithm.h"
-#include "algorithms/fd/fd.h"
-#include "config/max_lhs/type.h"
-#include "util/primitive_collection.h"
+#include "core/algorithms/algorithm.h"
+#include "core/algorithms/fd/fd.h"
+#include "core/config/max_lhs/type.h"
+#include "core/util/primitive_collection.h"
 
 namespace model {
 class AgreeSetFactory;
@@ -35,13 +35,13 @@ protected:
     config::MaxLhsType max_lhs_;
 
     /* Collection of all discovered FDs
-     * Every FD mining algorithm should place discovered dependecies here. Don't add new FDs by
+     * Every FD mining algorithm should place discovered dependencies here. Don't add new FDs by
      * accessing this field directly, use RegisterFd methods instead
      */
     util::PrimitiveCollection<FD> fd_collection_;
 
     /* Registers new FD.
-     * Should be overrided if custom behavior is needed
+     * Should be overridden if custom behavior is needed
      */
     virtual void RegisterFd(Vertical lhs, Column rhs,
                             std::shared_ptr<RelationalSchema const> const& schema) {
@@ -55,9 +55,7 @@ protected:
     }
 
 public:
-    constexpr static std::string_view kDefaultPhaseName = "FD mining";
-
-    explicit FDAlgorithm(std::vector<std::string_view> phase_names);
+    explicit FDAlgorithm();
 
     /* Returns the list of discovered FDs */
     std::list<FD> const& FdList() const noexcept {
@@ -68,24 +66,13 @@ public:
         return fd_collection_.AsList();
     }
 
+    std::list<FD>& SortedFdList();
+
     /* возвращает набор ФЗ в виде JSON-а. По сути, это просто представление фиксированного формата
      * для сравнения результатов разных алгоритмов. JSON - на всякий случай, если потом, например,
      * понадобится загрузить список в питон и как-нибудь его поанализировать
      * */
     std::string GetJsonFDs() const;
-
-    /* Returns a vector of columns containing only unique values (i.e. keys).
-     * Should be called after execute() only.
-     * NOTE: retrieves keys from mined fds, so could be quite slow on wide
-     * tables with many fds.
-     * If your algorithm is inherited from FDAlgorithm but not from
-     * PliBasedFDAlgorithm and generates ColumnLayoutRelationData from the
-     * input table or in some similar way parses table, override this method
-     * and use parsed table representation to retrieve keys (for performance
-     * purposes).
-     * PliBasedFDAlgorithm::GetKeys() is already overriding this method.
-     */
-    virtual std::vector<Column const*> GetKeys() const;
 
     // считает контрольную сумму Флетчера - нужно для тестирования по хешу
     unsigned int Fletcher16();

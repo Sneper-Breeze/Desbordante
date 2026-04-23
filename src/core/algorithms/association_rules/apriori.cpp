@@ -1,13 +1,11 @@
-#include "algorithms/association_rules/apriori.h"
+#include "core/algorithms/association_rules/apriori.h"
 
 #include <algorithm>
 #include <cassert>
 
-#include <easylogging++.h>
+#include "core/util/logger.h"
 
 namespace algos {
-
-Apriori::Apriori() : ARAlgorithm({}) {}
 
 void Apriori::GenerateCandidates(std::vector<Node>& children) {
     auto const last_child_iter = std::prev(children.end());
@@ -132,10 +130,10 @@ unsigned long long Apriori::FindFrequent() {
             candidates_count += candidate_children.size();
         }
         auto const branching_degree = level_num_;
-        auto const min_treshold = candidates_count / branching_degree + 1;
+        auto const min_threshold = candidates_count / branching_degree + 1;
 
         candidate_hash_tree_ = std::make_unique<CandidateHashTree>(
-                transactional_data_.get(), candidates_, branching_degree, min_treshold);
+                transactional_data_.get(), candidates_, branching_degree, min_threshold);
         candidate_hash_tree_->PerformCounting();
         candidate_hash_tree_->PruneNodes(minsup_);
         AppendToTree();
@@ -172,7 +170,7 @@ unsigned long long Apriori::GenerateAllRules() {
             std::chrono::system_clock::now() - start_time);
     long long millis = elapsed_milliseconds.count();
 
-    LOG(INFO) << "> Count of frequent itemsets: " << frequent_count;
+    LOG_INFO("> Count of frequent itemsets: {}", frequent_count);
     return millis;
 }
 

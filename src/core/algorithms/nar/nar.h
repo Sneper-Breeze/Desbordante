@@ -2,9 +2,9 @@
 
 #include <vector>
 
-#include "model/table/column_layout_typed_relation_data.h"
-#include "model/types/types.h"
-#include "value_range.h"
+#include "core/algorithms/nar/value_range.h"
+#include "core/model/table/column_layout_typed_relation_data.h"
+#include "core/model/types/types.h"
 
 namespace model {
 
@@ -51,6 +51,20 @@ public:
 
     auto const& GetCons() const noexcept {
         return cons_;
+    }
+
+    bool IsQualitiesConsistent() const {
+        return qualities_consistent_;
+    }
+
+    void SetQualitiesDirect(double fitness, double support, double confidence) {
+        qualities_.fitness = fitness;
+        qualities_.support = support;
+        qualities_.confidence = confidence;
+    }
+
+    void SetQualitiesConsistent(bool qc) {
+        qualities_consistent_ = qc;
     }
 
     void InsertInAnte(size_t feature_index, std::shared_ptr<ValueRange> range);

@@ -1,19 +1,14 @@
-#include "algorithms/fd/depminer/depminer.h"
+#include "core/algorithms/fd/depminer/depminer.h"
 
 #include <chrono>
 #include <list>
 #include <memory>
 
-#include <easylogging++.h>
-
-#include "model/table/agree_set_factory.h"
-#include "model/table/relational_schema.h"
+#include "core/model/table/agree_set_factory.h"
+#include "core/model/table/relational_schema.h"
+#include "core/util/logger.h"
 
 namespace algos {
-
-Depminer::Depminer(std::optional<ColumnLayoutRelationDataManager> relation_manager)
-    : PliBasedFDAlgorithm({"AgreeSets generation", "Finding CMAXSets", "Finding LHS"},
-                          relation_manager) {}
 
 using boost::dynamic_bitset, std::make_shared, std::shared_ptr, std::setw, std::vector, std::list,
         std::dynamic_pointer_cast;
@@ -23,30 +18,25 @@ unsigned long long Depminer::ExecuteInternal() {
 
     schema_ = relation_->GetSchema();
 
-    progress_step_ = kTotalProgressPercent / schema_->GetNumColumns();
-
     // Agree sets
     model::AgreeSetFactory const agree_set_factory =
-            model::AgreeSetFactory(relation_.get(), model::AgreeSetFactory::Configuration(), this);
+            model::AgreeSetFactory(relation_.get(), model::AgreeSetFactory::Configuration());
     auto const agree_sets = agree_set_factory.GenAgreeSets();
-    ToNextProgressPhase();
 
     // maximal sets
     std::vector<CMAXSet> const c_max_cets = GenerateCmaxSets(agree_sets);
-    ToNextProgressPhase();
 
     // LHS
     auto const lhs_time = std::chrono::system_clock::now();
     // 1
     for (auto const& column : schema_->GetColumns()) {
         LhsForColumn(column, c_max_cets);
-        AddProgress(progress_step_);
     }
 
     auto const lhs_elapsed_milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::system_clock::now() - lhs_time);
-    LOG(INFO) << "> LHS FIND TIME: " << lhs_elapsed_milliseconds.count();
-    LOG(INFO) << "> FD COUNT: " << this->fd_collection_.Size();
+    LOG_INFO("> LHS FIND TIME: {}", lhs_elapsed_milliseconds.count());
+    LOG_INFO("> FD COUNT: {}", this->fd_collection_.Size());
     auto const elapsed_milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::system_clock::now() - start_time);
     return elapsed_milliseconds.count();
@@ -99,13 +89,12 @@ std::vector<CMAXSet> Depminer::GenerateCmaxSets(std::unordered_set<Vertical> con
         }
         result.MakeNewCombinations(std::move(result_super_sets));
         c_max_cets.push_back(result);
-        AddProgress(progress_step_);
     }
 
     auto const elapsed_milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::system_clock::now() - start_time);
-    LOG(INFO) << "> CMAX GENERATION TIME: " << elapsed_milliseconds.count();
-    LOG(INFO) << "> CMAX SETS COUNT: " << c_max_cets.size();
+    LOG_INFO("> CMAX GENERATION TIME: {}", elapsed_milliseconds.count());
+    LOG_INFO("> CMAX SETS COUNT: {}", c_max_cets.size());
 
     return c_max_cets;
 }

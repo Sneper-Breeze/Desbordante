@@ -1,24 +1,24 @@
-#include "fd_first_algorithm.h"
+#include "core/algorithms/cfd/fd_first_algorithm.h"
 
 #include <iterator>
 
 #include <boost/unordered_map.hpp>
-#include <easylogging++.h>
 
-#include "algorithms/cfd/util/partition_tidlist_util.h"
-#include "algorithms/cfd/util/partition_util.h"
-#include "algorithms/cfd/util/set_util.h"
-#include "algorithms/cfd/util/tidlist_util.h"
-#include "config/equal_nulls/option.h"
-#include "config/exceptions.h"
-#include "config/names_and_descriptions.h"
-#include "config/option_using.h"
+#include "core/algorithms/cfd/util/partition_tidlist_util.h"
+#include "core/algorithms/cfd/util/partition_util.h"
+#include "core/algorithms/cfd/util/set_util.h"
+#include "core/algorithms/cfd/util/tidlist_util.h"
+#include "core/config/equal_nulls/option.h"
+#include "core/config/exceptions.h"
+#include "core/config/names_and_descriptions.h"
+#include "core/config/option_using.h"
+#include "core/util/logger.h"
 
 // see algorithms/cfd/LICENSE
 
 namespace algos::cfd {
 
-FDFirstAlgorithm::FDFirstAlgorithm() : CFDDiscovery({kDefaultPhaseName}) {
+FDFirstAlgorithm::FDFirstAlgorithm() : CFDDiscovery() {
     RegisterOptions();
 }
 
@@ -49,7 +49,7 @@ unsigned long long FDFirstAlgorithm::ExecuteInternal() {
     auto elapsed_milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::system_clock::now() - start_time);
     unsigned long long apriori_millis = elapsed_milliseconds.count();
-    LOG(INFO) << "> CFD COUNT: " << cfd_list_.size();
+    LOG_INFO("> CFD COUNT: {}", cfd_list_.size());
 
     return apriori_millis;
 }
@@ -80,7 +80,7 @@ void FDFirstAlgorithm::CheckForIncorrectInput() const {
     if (tuples_number_ != 0 && columns_number_ == 0) {
         throw config::ConfigurationError(
                 "[ERROR] Illegal columns_number and tuples_number values: tuples_number is " +
-                std::to_string(tuples_number_) + " while columnes_number is 0");
+                std::to_string(tuples_number_) + " while columns_number is 0");
     }
 
     if (columns_number_ != 0 && tuples_number_ != 0 && min_supp_ > tuples_number_) {
@@ -316,8 +316,9 @@ void FDFirstAlgorithm::AddCFDToCFDList(std::vector<int> const& sub, int out,
 
     if (rules_.find(out) != rules_.end()) {
         for (auto const& sub_rule : rules_[out]) {
-            if (out < 0 && !std::any_of(sub_rule.begin(), sub_rule.end(),
-                                        [](int si) -> bool { return si < 0; }))
+            if (out < 0 &&
+                !std::any_of(
+                        sub_rule.begin(), sub_rule.end(), [](int si) -> bool { return si < 0; }))
                 continue;
             if (Precedes(sub_rule, sub)) {
                 lhs_gen = false;
@@ -496,7 +497,7 @@ void FDFirstAlgorithm::MinePatternsDFS(Itemset const& prefix, TIdListMiners& ite
     for (int ix = static_cast<int>(items.size()) - 1; ix >= 0; ix--) {
         auto const& inode = items[ix];
         if (inode.tids.empty() && items[ix].tids.empty()) {
-            LOG(INFO) << ix;
+            LOG_INFO("{}", ix);
         }
         Itemset const iset = Join(prefix, inode.item);
         auto const node_attrs = relation_->GetAttrVectorItems(iset);

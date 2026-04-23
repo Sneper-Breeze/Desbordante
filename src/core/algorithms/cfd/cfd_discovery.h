@@ -8,10 +8,10 @@
 
 #include <boost/any.hpp>
 
-#include "algorithms/algorithm.h"
-#include "algorithms/cfd/model/cfd_relation_data.h"
-#include "algorithms/cfd/model/cfd_types.h"
-#include "config/tabular_data/input_table_type.h"
+#include "core/algorithms/algorithm.h"
+#include "core/algorithms/cfd/model/cfd_relation_data.h"
+#include "core/algorithms/cfd/model/cfd_types.h"
+#include "core/config/tabular_data/input_table_type.h"
 
 // see algorithms/cfd/LICENSE
 
@@ -32,8 +32,6 @@ protected:
     std::shared_ptr<CFDRelationData> relation_;
 
 public:
-    constexpr static std::string_view kDefaultPhaseName = "CFD mining";
-    explicit CFDDiscovery(std::vector<std::string_view> phase_names);
     explicit CFDDiscovery();
     void LoadDataInternal() final;
     int NrCfds() const;

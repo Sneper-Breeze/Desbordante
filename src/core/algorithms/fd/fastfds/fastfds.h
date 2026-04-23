@@ -5,16 +5,16 @@
 
 #include <boost/thread/mutex.hpp>
 
-#include "algorithms/fd/pli_based_fd_algorithm.h"
-#include "config/thread_number/type.h"
-#include "model/table/column_layout_relation_data.h"
-#include "model/table/vertical.h"
+#include "core/algorithms/fd/pli_based_fd_algorithm.h"
+#include "core/config/thread_number/type.h"
+#include "core/model/table/column_layout_relation_data.h"
+#include "core/model/table/vertical.h"
 
 namespace algos {
 
 class FastFDs : public PliBasedFDAlgorithm {
 public:
-    FastFDs(std::optional<ColumnLayoutRelationDataManager> relation_manager = std::nullopt);
+    FastFDs();
 
 private:
     using OrderingComparator = std::function<bool(Column const&, Column const&)>;
@@ -70,7 +70,6 @@ private:
     RelationalSchema const* schema_;
     std::vector<DiffSet> diff_sets_;
     config::ThreadNumType threads_num_;
-    double percent_per_col_;
 };
 
 }  // namespace algos

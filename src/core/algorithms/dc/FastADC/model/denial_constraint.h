@@ -6,8 +6,8 @@
 
 #include <boost/dynamic_bitset.hpp>
 
-#include "dc/FastADC/model/predicate.h"
-#include "dc/FastADC/model/predicate_set.h"
+#include "core/algorithms/dc/FastADC/model/predicate.h"
+#include "core/algorithms/dc/FastADC/model/predicate_set.h"
 
 namespace algos::fastadc {
 
@@ -38,6 +38,10 @@ public:
 
     size_t GetPredicateCount() const noexcept {
         return predicate_set_.Size();
+    }
+
+    std::shared_ptr<RelationalSchema const> GetSchema() const {
+        return schema_;
     }
 
     std::string ToString() const noexcept {

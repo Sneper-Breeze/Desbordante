@@ -2,12 +2,12 @@
 
 #include <memory>
 
-#include "algorithms/md/column_match.h"
-#include "algorithms/md/column_similarity_classifier.h"
-#include "algorithms/md/decision_boundary.h"
-#include "algorithms/md/lhs_column_similarity_classifier.h"
-#include "model/index.h"
-#include "model/table/relational_schema.h"
+#include "core/algorithms/md/column_match.h"
+#include "core/algorithms/md/column_similarity_classifier.h"
+#include "core/algorithms/md/decision_boundary.h"
+#include "core/algorithms/md/lhs_column_similarity_classifier.h"
+#include "core/model/index.h"
+#include "core/model/table/relational_schema.h"
 
 namespace model {
 
@@ -66,6 +66,23 @@ public:
     [[nodiscard]] std::string ToStringActiveLhsOnly() const;
     [[nodiscard]] std::vector<md::DecisionBoundary> GetLhsDecisionBounds() const;
     [[nodiscard]] std::pair<Index, md::DecisionBoundary> GetRhs() const noexcept;
+
+    [[nodiscard]] std::shared_ptr<RelationalSchema const> const& GetLeftSchema() const {
+        return left_schema_;
+    }
+
+    [[nodiscard]] std::shared_ptr<RelationalSchema const> const& GetRightSchema() const {
+        return right_schema_;
+    }
+
+    [[nodiscard]] std::shared_ptr<std::vector<md::ColumnMatch> const> const& GetColumnMatches()
+            const {
+        return column_matches_;
+    }
+
+    [[nodiscard]] std::vector<md::LhsColumnSimilarityClassifier> const& GetLhs() const {
+        return lhs_;
+    }
 
     [[nodiscard]] bool SingleTable() const noexcept {
         return left_schema_ == right_schema_;

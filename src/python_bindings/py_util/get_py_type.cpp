@@ -1,23 +1,30 @@
-#include "get_py_type.h"
+#include "python_bindings/py_util/get_py_type.h"
+
+#include <Python.h>
 
 #include <functional>
+#include <sstream>
+#include <stdexcept>
 #include <typeinfo>
 #include <unordered_map>
 #include <vector>
 
-#include <Python.h>
+#include <boost/core/demangle.hpp>
 #include <pybind11/stl/filesystem.h>
 
-#include "algorithms/cfd/enums.h"
-#include "algorithms/md/hymd/enums.h"
-#include "algorithms/md/hymd/hymd.h"
-#include "algorithms/metric/enums.h"
-#include "association_rules/ar_algorithm_enums.h"
-#include "config/custom_random_seed/type.h"
-#include "config/error_measure/type.h"
-#include "config/tabular_data/input_table_type.h"
-#include "config/tabular_data/input_tables_type.h"
-#include "model/table/column_combination.h"
+#include "core/algorithms/association_rules/ar_algorithm_enums.h"
+#include "core/algorithms/cfd/enums.h"
+#include "core/algorithms/dd/dd.h"
+#include "core/algorithms/md/hymd/enums.h"
+#include "core/algorithms/md/hymd/hymd.h"
+#include "core/algorithms/md/md_verifier/column_similarity_classifier.h"
+#include "core/algorithms/metric/enums.h"
+#include "core/algorithms/od/fastod/od_ordering.h"
+#include "core/config/custom_random_seed/type.h"
+#include "core/config/error_measure/type.h"
+#include "core/config/tabular_data/input_table_type.h"
+#include "core/config/tabular_data/input_tables_type.h"
+#include "core/model/table/column_combination.h"
 
 namespace py = pybind11;
 
@@ -86,6 +93,7 @@ py::tuple GetPyType(std::type_index type_index) {
             PyTypePair<algos::InputFormat, kPyStr>,
             PyTypePair<algos::cfd::Substrategy, kPyStr>,
             PyTypePair<algos::hymd::LevelDefinition, kPyStr>,
+            PyTypePair<algos::od::Ordering, kPyStr>,
             PyTypePair<std::vector<unsigned int>, kPyList, kPyInt>,
             {typeid(algos::hymd::HyMD::ColumnMatches),
              []() {
@@ -93,16 +101,35 @@ py::tuple GetPyType(std::type_index type_index) {
                          kPyList,
                          py::type::of<algos::hymd::preprocessing::column_matches::ColumnMatch>());
              }},
+            {typeid(model::DDString),
+             []() {
+                 return MakeTypeTuple(kPyTuple, kPyList, py::type::of<model::DFStringConstraint>());
+             }},
             {typeid(config::InputTable),
              []() { return MakeTypeTuple(py::type::of<config::InputTable>()); }},
             {typeid(config::InputTables),
              []() { return MakeTypeTuple(kPyList, py::type::of<config::InputTable>()); }},
+            {typeid(algos::md::ColumnSimilarityClassifier),
+             []() { return MakeTypeTuple(py::type::of<algos::md::ColumnSimilarityClassifier>()); }},
+            {typeid(std::vector<algos::md::ColumnSimilarityClassifier>),
+             []() {
+                 return MakeTypeTuple(kPyList,
+                                      py::type::of<algos::md::ColumnSimilarityClassifier>());
+             }},
             PyTypePair<std::filesystem::path, kPyStr>,
             PyTypePair<std::vector<std::filesystem::path>, kPyList, kPyStr>,
             PyTypePair<std::unordered_set<size_t>, kPySet, kPyInt>,
             PyTypePair<std::string, kPyStr>,
     };
-    return type_map.at(type_index)();
+
+    auto const it = type_map.find(type_index);
+    if (it == type_map.end()) [[unlikely]] {
+        std::ostringstream oss;
+        oss << "Cannot get Python type for " << boost::core::demangle(type_index.name())
+            << " (GetPyType)";
+        throw std::runtime_error(oss.str());
+    }
+    return it->second();
 }
 
 }  // namespace python_bindings

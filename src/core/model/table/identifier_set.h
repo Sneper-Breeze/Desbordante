@@ -3,9 +3,9 @@
 #include <memory>
 #include <vector>
 
-#include "model/table/column_data.h"
-#include "model/table/column_layout_relation_data.h"
-#include "model/table/vertical.h"
+#include "core/model/table/column_data.h"
+#include "core/model/table/column_layout_relation_data.h"
+#include "core/model/table/vertical.h"
 
 namespace model {
 
@@ -18,7 +18,7 @@ namespace model {
  * TODO: consider using Vertical + vector<int> indices
  * instead of vector<IdentitfierSetValue>. Probably it will be faster
  * but also maybe will hurt readability.
- * UPD: Did not notice any difference in perfmormance.
+ * UPD: Did not notice any difference in performance.
  */
 class IdentifierSet {
 public:
